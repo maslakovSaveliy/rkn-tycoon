@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next
+.next/
+out/
+.turbo/
+
+# Local data
+.data/
+
+# Env
+.env
+.env.local
+.env*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Prisma local dev artifacts
+prisma/migrations/dev/
+
+# Coverage
+coverage/
+
+# Vitest
+.vitest-cache/
+
+# LanceDB (existing in repo root from earlier work)
+lancedb/
+
+# Misc
+.eslintcache
+*.tsbuildinfo
+
+# GSD tooling auto-output
+.planning/HANDOFF.json
+
+/node_modules/.prisma/client

@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rkn-bg: #0a0a0a;
+  --color-rkn-fg: #c0d000;
+  --color-rkn-dim: #5a6a30;
+  --color-rkn-warning: #ff5a3a;
+  --color-rkn-accent: #d4d4d4;
+  --font-mono:
+    var(--font-mono), ui-monospace, "Cascadia Code", "Source Code Pro", Menlo,
+    Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--color-rkn-bg);
+  color: var(--color-rkn-fg);
+  font-family: var(--font-mono);
+  overflow-x: hidden;
+}
+
+html:has(main.lock-scroll),
+body:has(main.lock-scroll) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.text-glow {
+  text-shadow: 0 0 6px currentColor;
+}
+
+.ascii-frame {
+  position: relative;
+  border: 1px double var(--color-rkn-fg);
+}
+.ascii-frame::before,
+.ascii-frame::after {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 1em;
+  line-height: 1;
+  color: var(--color-rkn-fg);
+  pointer-events: none;
+  user-select: none;
+}
+.ascii-frame::before {
+  content: "╔";
+  top: -0.6em;
+  left: -0.2em;
+}
+.ascii-frame::after {
+  content: "╝";
+  bottom: -0.6em;
+  right: -0.2em;
+}
+
+@keyframes plus-popup-rise {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 40px));
+  }
+}
+
+.plus-popup {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-rkn-fg);
+  text-shadow:
+    0 0 4px var(--color-rkn-fg),
+    -1px -1px 0 var(--color-rkn-bg),
+    1px -1px 0 var(--color-rkn-bg),
+    -1px 1px 0 var(--color-rkn-bg),
+    1px 1px 0 var(--color-rkn-bg);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.plus-popup-active {
+  animation: plus-popup-rise 700ms ease-out forwards;
+}
+
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 250ms ease-out;
+}
+
+@keyframes event-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--color-rkn-fg);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 10px transparent;
+    opacity: 0.8;
+  }
+}
+
+.animate-event-pulse {
+  animation: event-pulse 1500ms ease-in-out infinite;
+}

@@ -1,0 +1,64 @@
+{
+  "name": "rkn-tycoon",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "7.8.0",
+    "break_infinity.js": "2.2.0",
+    "next": "15.5.18",
+    "pg": "^8.20.0",
+    "prisma": "7.8.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "server-only": "^0.0.1",
+    "three": "^0.184.0",
+    "zustand": "5.0.13"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@tailwindcss/postcss": "4.3.0",
+    "@types/node": "20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "@types/three": "^0.184.1",
+    "@vitest/ui": "^4.1.6",
+    "eslint": "9.39.4",
+    "eslint-config-next": "15.5.18",
+    "eslint-plugin-import": "2.32.0",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.5.14",
+    "tailwindcss": "4.3.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.59.3",
+    "vitest": "4.1.6"
+  }
+}

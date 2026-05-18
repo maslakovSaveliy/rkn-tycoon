@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="РКН Tycoon">
+  <style>
+    .mono { font-family: ui-monospace, "JetBrains Mono", "Cascadia Code", "Source Code Pro", "Courier New", monospace; }
+    .border-cell { fill: #c0d000; }
+    .title { fill: #c0d000; font-weight: 900; }
+    .subtitle { fill: #5a6a30; font-weight: 700; }
+    .dim { fill: #5a6a30; font-weight: 700; }
+  </style>
+
+  <!-- Black background. -->
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+
+  <!-- Ring of # marks around the edge (same vibe as favicon). -->
+  <g class="mono border-cell" font-size="34" text-anchor="middle">
+    <!-- Top + bottom rows: 22 hashes each, 50px apart starting at x=80 -->
+    <!-- top -->
+    <text x="80"  y="68">#</text><text x="130" y="68">#</text><text x="180" y="68">#</text>
+    <text x="230" y="68">#</text><text x="280" y="68">#</text><text x="330" y="68">#</text>
+    <text x="380" y="68">#</text><text x="430" y="68">#</text><text x="480" y="68">#</text>
+    <text x="530" y="68">#</text><text x="580" y="68">#</text><text x="630" y="68">#</text>
+    <text x="680" y="68">#</text><text x="730" y="68">#</text><text x="780" y="68">#</text>
+    <text x="830" y="68">#</text><text x="880" y="68">#</text><text x="930" y="68">#</text>
+    <text x="980" y="68">#</text><text x="1030" y="68">#</text><text x="1080" y="68">#</text>
+    <text x="1120" y="68">#</text>
+    <!-- bottom -->
+    <text x="80"  y="600">#</text><text x="130" y="600">#</text><text x="180" y="600">#</text>
+    <text x="230" y="600">#</text><text x="280" y="600">#</text><text x="330" y="600">#</text>
+    <text x="380" y="600">#</text><text x="430" y="600">#</text><text x="480" y="600">#</text>
+    <text x="530" y="600">#</text><text x="580" y="600">#</text><text x="630" y="600">#</text>
+    <text x="680" y="600">#</text><text x="730" y="600">#</text><text x="780" y="600">#</text>
+    <text x="830" y="600">#</text><text x="880" y="600">#</text><text x="930" y="600">#</text>
+    <text x="980" y="600">#</text><text x="1030" y="600">#</text><text x="1080" y="600">#</text>
+    <text x="1120" y="600">#</text>
+    <!-- left + right columns -->
+    <text x="80" y="120">#</text><text x="80" y="170">#</text><text x="80" y="220">#</text>
+    <text x="80" y="270">#</text><text x="80" y="320">#</text><text x="80" y="370">#</text>
+    <text x="80" y="420">#</text><text x="80" y="470">#</text><text x="80" y="520">#</text>
+    <text x="80" y="560">#</text>
+    <text x="1120" y="120">#</text><text x="1120" y="170">#</text><text x="1120" y="220">#</text>
+    <text x="1120" y="270">#</text><text x="1120" y="320">#</text><text x="1120" y="370">#</text>
+    <text x="1120" y="420">#</text><text x="1120" y="470">#</text><text x="1120" y="520">#</text>
+    <text x="1120" y="560">#</text>
+  </g>
+
+  <!-- РКН — huge centered. -->
+  <text class="mono title" x="600" y="350" text-anchor="middle" font-size="220" letter-spacing="20">РКН</text>
+
+  <!-- СИМУЛЯТОР — under the РКН. -->
+  <text class="mono title" x="600" y="440" text-anchor="middle" font-size="60" letter-spacing="22">СИМУЛЯТОР</text>
+
+  <!-- Tagline. -->
+  <text class="mono subtitle" x="600" y="510" text-anchor="middle" font-size="22" letter-spacing="6">ИДЛ-КЛИКЕР · САТИРА</text>
+
+  <!-- Domain corner mark. -->
+  <text class="mono dim" x="600" y="555" text-anchor="middle" font-size="18" letter-spacing="4">RKN-TYCOON.RU</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="РКН Tycoon">
+  <!-- Black square background. -->
+  <rect width="64" height="64" fill="#0a0a0a"/>
+
+  <!-- Ring of # marks around the edge (approximates the screenshot's hash border). -->
+  <g fill="#c0d000" font-family="ui-monospace, 'Courier New', monospace" font-weight="700" font-size="6" text-anchor="middle">
+    <!-- Top + bottom rows -->
+    <text x="6" y="9">#</text><text x="13" y="9">#</text><text x="20" y="9">#</text>
+    <text x="27" y="9">#</text><text x="34" y="9">#</text><text x="41" y="9">#</text>
+    <text x="48" y="9">#</text><text x="55" y="9">#</text>
+    <text x="6" y="61">#</text><text x="13" y="61">#</text><text x="20" y="61">#</text>
+    <text x="27" y="61">#</text><text x="34" y="61">#</text><text x="41" y="61">#</text>
+    <text x="48" y="61">#</text><text x="55" y="61">#</text>
+    <!-- Left + right columns -->
+    <text x="6" y="17">#</text><text x="6" y="25">#</text><text x="6" y="33">#</text>
+    <text x="6" y="41">#</text><text x="6" y="49">#</text>
+    <text x="58" y="17">#</text><text x="58" y="25">#</text><text x="58" y="33">#</text>
+    <text x="58" y="41">#</text><text x="58" y="49">#</text>
+  </g>
+
+  <!-- РКН — bold monospace, vertically centered between the borders. -->
+  <text x="32" y="42"
+        text-anchor="middle"
+        font-family="ui-monospace, 'Courier New', monospace"
+        font-weight="900"
+        font-size="22"
+        letter-spacing="0.5"
+        fill="#c0d000">РКН</text>
+</svg>
