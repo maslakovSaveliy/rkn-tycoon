@@ -21,6 +21,17 @@ export async function GET(req: Request) {
       { status: 400 },
     )
   }
-  const rows = await getTop(parsed.data.by as LeaderboardSort, parsed.data.limit)
-  return NextResponse.json({ rows }, { status: 200 })
+  try {
+    const rows = await getTop(parsed.data.by as LeaderboardSort, parsed.data.limit)
+    return NextResponse.json({ rows }, { status: 200 })
+  } catch (err) {
+    console.error('[api/leaderboard] getTop failed', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    return NextResponse.json(
+      { error: { code: 'internal', message: 'leaderboard query failed' } },
+      { status: 500 },
+    )
+  }
 }

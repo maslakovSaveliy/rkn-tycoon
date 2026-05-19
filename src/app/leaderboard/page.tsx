@@ -15,7 +15,17 @@ interface PageProps {
 export default async function LeaderboardPage({ searchParams }: PageProps) {
   const { by } = await searchParams
   const sort = by === 'stars' ? 'stars' : 'blocks'
-  const rows = await getTop(sort, 100)
+  let rows: Awaited<ReturnType<typeof getTop>>
+  try {
+    rows = await getTop(sort, 100)
+  } catch (err) {
+    console.error('[leaderboard] getTop failed', {
+      sort,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    throw err
+  }
 
   return (
     <main className="min-h-screen p-4 sm:p-6 font-mono text-rkn-fg flex flex-col gap-4 max-w-3xl mx-auto">

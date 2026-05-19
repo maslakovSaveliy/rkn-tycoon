@@ -65,20 +65,36 @@ export async function getTop(by: LeaderboardSort, limit = 100): Promise<Leaderbo
       ? [{ tbeExponent: 'desc' as const }, { tbeMantissa: 'desc' as const }]
       : [{ prestigeStars: 'desc' as const }, { tbeExponent: 'desc' as const }]
 
-  const rows = await db.leaderboardEntry.findMany({
-    where: { user: { isAnonymous: false } },
+  // Two flat queries instead of relation-include + relation-where. Same
+  // shape on the wire, avoids a Prisma 7 driver-adapter codepath that
+  // 500'd on Vercel for the joined variant.
+  const overshoot = Math.min(limit * 4, 400)
+  const entries = await db.leaderboardEntry.findMany({
     orderBy,
-    take: limit,
-    include: { user: { select: { name: true, email: true } } },
+    take: overshoot,
   })
+  if (entries.length === 0) return []
 
-  return rows.map((r) => ({
-    userId: r.userId,
-    name: pickDisplayName(r.user.name, r.user.email),
-    totalBlocks: { mantissa: r.tbeMantissa, exponent: r.tbeExponent },
-    prestigeStars: r.prestigeStars,
-    playtimeSeconds: r.playtimeSeconds,
-  }))
+  const users = await db.user.findMany({
+    where: { id: { in: entries.map((e) => e.userId) }, isAnonymous: false },
+    select: { id: true, name: true, email: true },
+  })
+  const byId = new Map(users.map((u) => [u.id, u]))
+
+  const rows: LeaderboardRow[] = []
+  for (const e of entries) {
+    const u = byId.get(e.userId)
+    if (!u) continue
+    rows.push({
+      userId: e.userId,
+      name: pickDisplayName(u.name, u.email),
+      totalBlocks: { mantissa: e.tbeMantissa, exponent: e.tbeExponent },
+      prestigeStars: e.prestigeStars,
+      playtimeSeconds: e.playtimeSeconds,
+    })
+    if (rows.length >= limit) break
+  }
+  return rows
 }
 
 function pickDisplayName(name: string | null, email: string): string {
