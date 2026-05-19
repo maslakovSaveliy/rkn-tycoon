@@ -65,29 +65,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 }
 
 /**
- * Inline SVG <filter> defining a barrel-distortion displacement map.
- * The map is two linear gradients overlaid: red channel goes 0→255 left
- * to right (controls X displacement), green channel goes 0→255 top to
- * bottom (controls Y displacement). At the centre R=G=128 → no
- * displacement. At the corners both channels diverge from 128 → pixels
- * shift outward, giving an "old picture tube bulge" feel.
+ * Inline SVG <filter> for barrel-distortion via feDisplacementMap.
+ *
+ * The displacement map is composed inside the filter pipeline from two
+ * single-axis SVG gradients (X = red 0→255, Y = green 0→255) blended
+ * additively via feComposite operator="arithmetic". Avoids CSS
+ * mix-blend-mode inside a data-URI SVG, which several browsers ignore
+ * when the SVG is consumed as an image source.
+ *
+ * Resulting map: centre is (R=128, G=128) → no displacement; corners
+ * diverge to (0/255, 0/255) → pixels are pulled outward, faking the
+ * convex bulge of an old picture tube.
  */
 function CrtFilterDefs() {
-  const mapSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>
-    <defs>
-      <linearGradient id='lr' x1='0' y1='0' x2='1' y2='0'>
-        <stop offset='0' stop-color='#000000'/>
-        <stop offset='1' stop-color='#ff0000'/>
-      </linearGradient>
-      <linearGradient id='tb' x1='0' y1='0' x2='0' y2='1'>
-        <stop offset='0' stop-color='#000000'/>
-        <stop offset='1' stop-color='#00ff00'/>
-      </linearGradient>
-    </defs>
-    <rect width='100' height='100' fill='url(#lr)'/>
-    <rect width='100' height='100' fill='url(#tb)' style='mix-blend-mode:lighten'/>
-  </svg>`
-  const mapHref = `data:image/svg+xml;utf8,${encodeURIComponent(mapSvg)}`
+  const xMapSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='%23000000'/><stop offset='1' stop-color='%23ff0000'/></linearGradient></defs><rect width='100' height='100' fill='url(%23g)'/></svg>`
+  const yMapSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23000000'/><stop offset='1' stop-color='%2300ff00'/></linearGradient></defs><rect width='100' height='100' fill='url(%23g)'/></svg>`
+  const xHref = `data:image/svg+xml;utf8,${xMapSvg}`
+  const yHref = `data:image/svg+xml;utf8,${yMapSvg}`
 
   return (
     <svg
@@ -99,18 +93,37 @@ function CrtFilterDefs() {
       <defs>
         <filter id="crt-barrel" x="0%" y="0%" width="100%" height="100%">
           <feImage
-            href={mapHref}
+            href={xHref}
             preserveAspectRatio="none"
             x="0"
             y="0"
             width="100%"
             height="100%"
+            result="xmap"
+          />
+          <feImage
+            href={yHref}
+            preserveAspectRatio="none"
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            result="ymap"
+          />
+          <feComposite
+            in="xmap"
+            in2="ymap"
+            operator="arithmetic"
+            k1="0"
+            k2="1"
+            k3="1"
+            k4="0"
             result="map"
           />
           <feDisplacementMap
             in="SourceGraphic"
             in2="map"
-            scale="30"
+            scale="25"
             xChannelSelector="R"
             yChannelSelector="G"
           />
