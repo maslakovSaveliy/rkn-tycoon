@@ -55,7 +55,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" className={jetbrainsMono.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <div className="crt-overlay" aria-hidden />
+      </body>
     </html>
   )
 }
