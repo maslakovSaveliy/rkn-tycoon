@@ -127,7 +127,6 @@ export default tseslint.config(
       '.data/**',
       'coverage/**',
       'next-env.d.ts',
-      'scripts/**',
     ],
   },
 )
