@@ -131,6 +131,16 @@ body:has(main.lock-scroll) {
   animation: crt-flicker 5s ease-in-out infinite;
 }
 
+/* CRT screen — wraps page content; SVG filter applies barrel distortion
+   that bulges the corners outward like an old picture tube. The filter
+   itself is defined in app/layout.tsx as inline SVG. */
+.crt-screen {
+  filter: url(#crt-barrel);
+  /* feDisplacementMap can be heavy on huge layouts; isolate the paint. */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 .crt-overlay::after {
   content: "";
   position: absolute;
@@ -140,6 +150,7 @@ body:has(main.lock-scroll) {
   mix-blend-mode: overlay;
   animation: crt-noise 240ms steps(5) infinite;
 }
+
 
 @keyframes crt-flicker {
   0%, 100% { opacity: 1; }
