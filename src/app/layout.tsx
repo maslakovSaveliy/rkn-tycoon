@@ -57,6 +57,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ru" className={jetbrainsMono.variable}>
       <body>
         {children}
+        <div className="crt-frame" aria-hidden />
         <div className="crt-overlay" aria-hidden />
       </body>
     </html>

@@ -113,13 +113,33 @@ body:has(main.lock-scroll) {
   animation: event-pulse 1500ms ease-in-out infinite;
 }
 
-/* CRT overlay — scanlines + animated SVG noise + vignette + subtle flicker.
-   Fixed full-viewport, pointer-events: none so clicks pass through. */
+/* CRT bezel frame — fakes the rounded-rectangle picture-tube shape.
+   The element sits 6px inside the viewport with a 28px border-radius;
+   its 100vw black box-shadow paints everything outside that rounded
+   rectangle, giving the iMac-G3 / classic CRT cutout silhouette.
+   pointer-events: none so clicks still hit DOM content underneath. */
+.crt-frame {
+  position: fixed;
+  inset: 6px;
+  pointer-events: none;
+  border-radius: 32px / 38px;
+  z-index: 9998;
+  box-shadow:
+    0 0 0 100vw #000,
+    inset 0 0 80px 12px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* CRT overlay — scanlines + animated SVG noise + flicker.
+   Matches the frame inset + radius so effects only render inside the
+   "screen". */
 .crt-overlay {
   position: fixed;
-  inset: 0;
+  inset: 6px;
   pointer-events: none;
   z-index: 9999;
+  border-radius: 32px / 38px;
+  overflow: hidden;
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -127,7 +147,6 @@ body:has(main.lock-scroll) {
     rgba(0, 0, 0, 0.22) 2px,
     rgba(0, 0, 0, 0.22) 3px
   );
-  box-shadow: inset 0 0 180px 40px rgba(0, 0, 0, 0.65);
   animation: crt-flicker 5s ease-in-out infinite;
 }
 
