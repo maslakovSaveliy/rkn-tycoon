@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from '@/lib/authClient'
 import { useGameStore } from '@/state/gameStore'
 import { fetchServerSave, pushServerSave } from '@/state/serverSync'
+import type { GameState } from '@/types/save'
 import { CURRENT_SAVE_VERSION } from '@/types/save'
 
 const PUSH_THROTTLE_MS = 30_000
@@ -11,69 +12,67 @@ const PUSH_THROTTLE_MS = 30_000
 /**
  * Two-tier sync between localStorage save and Supabase Save row.
  *
- * 1. On session resolve (user signed in / anon ready): merge local vs server
- *    by `updatedAt`; newer wins. If server is newer → applyServerSave +
- *    overwrite localStorage. If local is newer → push to server.
- * 2. While signed in: throttled (30 s) push of current state to server +
- *    flush on `visibilitychange` / `beforeunload`.
- *
- * Anonymous users follow the same flow — server save is also tied to
- * `anonymousUser.id`, and the `onLinkAccount` callback migrates it to the
- * real user on signup.
+ * Conflict resolution rule:
+ *   Local is "newer" only if it actually contains progress. A freshly-
+ *   hydrated empty store has lastTick = Date.now() but that timestamp
+ *   doesn't represent a save — it's just the moment the page loaded.
+ *   Comparing it against the server's real updatedAt would always make
+ *   the empty local win, clobbering real saves on every other device.
  */
 export function useAuthSync(): void {
   const { data: session, isPending } = useSession()
   const hydrated = useGameStore((s) => s.hydrated)
   const applyServerSave = useGameStore((s) => s.applyServerSave)
 
+  const [synced, setSynced] = useState(false)
   const lastUserIdRef = useRef<string | null>(null)
   const lastPushAtRef = useRef(0)
   const pushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Initial merge.
   useEffect(() => {
     if (isPending || !hydrated) return
     if (!session) {
       lastUserIdRef.current = null
+      setSynced(false)
       return
     }
     const userId = session.user.id
     if (lastUserIdRef.current === userId) return
     lastUserIdRef.current = userId
+    setSynced(false)
 
     void (async () => {
-      const remote = await fetchServerSave()
-      const local = useGameStore.getState()
-      const localUpdatedAt = local.lastTick
+      try {
+        const remote = await fetchServerSave()
+        const local = useGameStore.getState()
+        const localHasProgress = hasProgress(local)
 
-      if (!remote) {
-        await pushServerSave({
-          state: snapshotPersistable(local),
-          version: CURRENT_SAVE_VERSION,
-          updatedAt: localUpdatedAt,
-        })
-        return
-      }
-
-      if (remote.updatedAt > localUpdatedAt) {
-        applyServerSave(remote.state)
-      } else if (localUpdatedAt > remote.updatedAt) {
-        await pushServerSave({
-          state: snapshotPersistable(local),
-          version: CURRENT_SAVE_VERSION,
-          updatedAt: localUpdatedAt,
-        })
+        if (remote && (!localHasProgress || remote.updatedAt > local.lastTick)) {
+          applyServerSave(remote.state)
+        } else if (localHasProgress) {
+          await pushServerSave({
+            state: snapshotPersistable(local),
+            version: CURRENT_SAVE_VERSION,
+            updatedAt: local.lastTick,
+          })
+        }
+      } finally {
+        setSynced(true)
       }
     })()
   }, [session, isPending, hydrated, applyServerSave])
 
+  // Throttled push — runs only after initial merge finished.
   useEffect(() => {
-    if (!session || !hydrated) return
+    if (!synced || !session || !hydrated) return
 
     const pushNow = () => {
+      const snap = useGameStore.getState()
+      if (!hasProgress(snap)) return
       lastPushAtRef.current = Date.now()
-      const snap = snapshotPersistable(useGameStore.getState())
       void pushServerSave({
-        state: snap,
+        state: snapshotPersistable(snap),
         version: CURRENT_SAVE_VERSION,
         updatedAt: Date.now(),
       })
@@ -110,10 +109,19 @@ export function useAuthSync(): void {
         pushTimerRef.current = null
       }
     }
-  }, [session, hydrated])
+  }, [synced, session, hydrated])
 }
 
-function snapshotPersistable(s: ReturnType<typeof useGameStore.getState>) {
+function hasProgress(s: GameState): boolean {
+  return (
+    s.totalBlocksEver.gt(0) ||
+    s.purchasedClickUpgrades.length > 0 ||
+    Object.values(s.censorCounts).some((n) => n > 0) ||
+    s.prestigeStars > 0
+  )
+}
+
+function snapshotPersistable(s: ReturnType<typeof useGameStore.getState>): GameState {
   return {
     blocks: s.blocks,
     totalBlocksEver: s.totalBlocksEver,
