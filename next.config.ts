@@ -7,6 +7,13 @@ const config: NextConfig = {
     reactCompiler: false,
   },
   outputFileTracingRoot: path.resolve(import.meta.dirname ?? '.'),
+  outputFileTracingIncludes: {
+    '/**/*': [
+      './node_modules/.prisma/client/**/*',
+      './node_modules/@prisma/client/**/*',
+      './node_modules/@prisma/engines/**/*',
+    ],
+  },
 }
 
 export default config
