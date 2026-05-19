@@ -7,13 +7,10 @@ const config: NextConfig = {
     reactCompiler: false,
   },
   outputFileTracingRoot: path.resolve(import.meta.dirname ?? '.'),
-  outputFileTracingIncludes: {
-    '/**/*': [
-      './node_modules/.prisma/client/**/*',
-      './node_modules/@prisma/client/**/*',
-      './node_modules/@prisma/engines/**/*',
-    ],
-  },
+  // Keep Prisma + its driver adapter as external runtime deps so Next
+  // doesn't bundle them. Loaded from node_modules at runtime — avoids
+  // the pnpm-symlink trap that breaks Vercel's deployment packager.
+  serverExternalPackages: ['@prisma/client', '@prisma/adapter-pg'],
 }
 
 export default config
