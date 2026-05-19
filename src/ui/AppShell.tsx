@@ -17,6 +17,7 @@ import { LogoBanner } from './LogoBanner'
 import { OfflineProgressModal } from './OfflineProgressModal'
 import { PlusPopup, type PopupController } from './PlusPopup'
 import { PrestigeButton } from './PrestigeButton'
+import { SettingsMenuButton } from './SettingsMenu'
 import { SoundToggle } from './SoundToggle'
 import { UpgradesMenuButton } from './UpgradesMenu'
 import { useAuthSync } from './useAuthSync'
@@ -79,17 +80,22 @@ export function AppShell() {
 
   return (
     <main className="lock-scroll h-[100dvh] overflow-hidden flex flex-col">
-      <header className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-rkn-dim/40 flex-wrap">
-        <div className="flex items-center gap-2">
+      <header className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-rkn-dim/40">
+        <div className="flex items-center gap-2 min-w-0">
           <UpgradesMenuButton />
           <EpauletIndicator />
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-2 justify-end">
           <PrestigeButton />
-          <LeaderboardButton />
-          <AchievementsButton />
-          <SoundToggle />
-          <AuthButton />
+          <div className="hidden sm:flex items-center gap-2 flex-wrap justify-end">
+            <LeaderboardButton />
+            <AchievementsButton />
+            <SoundToggle />
+            <AuthButton />
+          </div>
+          <div className="sm:hidden">
+            <SettingsMenuButton />
+          </div>
         </div>
       </header>
 

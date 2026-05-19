@@ -51,3 +51,5 @@ lancedb/
 .planning/HANDOFF.json
 
 /node_modules/.prisma/client
+.vercel
+.claude
