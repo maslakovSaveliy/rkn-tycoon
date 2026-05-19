@@ -56,10 +56,57 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" className={jetbrainsMono.variable}>
       <body>
-        {children}
+        <CrtFilterDefs />
+        <div className="crt-screen">{children}</div>
         <div className="crt-frame" aria-hidden />
         <div className="crt-overlay" aria-hidden />
       </body>
     </html>
+  )
+}
+
+/**
+ * SVG <filter> that warps page content via a pre-rendered radial
+ * displacement map (public/crt-barrel-map.png). The map encodes a true
+ * barrel curve: dx = u * r^2.1 * strength (and likewise for dy), so
+ * displacement grows quadratically with distance from centre — text near
+ * the middle is untouched, only the corners pull outward.
+ */
+function CrtFilterDefs() {
+  return (
+    <svg
+      width="0"
+      height="0"
+      aria-hidden
+      style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
+    >
+      <defs>
+        <filter
+          id="crt-barrel"
+          x="-5%"
+          y="-5%"
+          width="110%"
+          height="110%"
+          colorInterpolationFilters="sRGB"
+        >
+          <feImage
+            href="/crt-barrel-map.png"
+            preserveAspectRatio="none"
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            result="map"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="map"
+            scale="44"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </defs>
+    </svg>
   )
 }
