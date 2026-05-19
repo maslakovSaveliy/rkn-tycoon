@@ -1,6 +1,6 @@
 import Decimal from 'break_infinity.js'
 
-export const CURRENT_SAVE_VERSION = 3
+export const CURRENT_SAVE_VERSION = 4
 export type SaveVersion = number
 
 export interface GameState {
@@ -12,6 +12,8 @@ export interface GameState {
   lastTick: number
   tickCount: number
   uptimeStartMs: number
+  /** Accumulated seconds of active play. Used by the leaderboard for sanity. */
+  playtimeSeconds: number
   purchasedClickUpgrades: string[]
   censorCounts: Record<string, number>
   offlineEarnings: {
@@ -66,6 +68,7 @@ export function initialState(): GameState {
     lastTick: Date.now(),
     tickCount: 0,
     uptimeStartMs: 0,
+    playtimeSeconds: 0,
     purchasedClickUpgrades: [],
     censorCounts: {},
     offlineEarnings: null,

@@ -18,7 +18,27 @@ import {
 import { geometricSeriesCost, maxBuyCensor } from '@/lib/maxBuy'
 import type { GameState } from '@/types/save'
 import { CURRENT_SAVE_VERSION, initialState } from '@/types/save'
+import { enqueueEvent } from './eventsClient'
 import { PERSIST_STORAGE_KEY, persistStorage } from './persistStorage'
+
+const MILESTONES: { id: string; threshold: Decimal }[] = [
+  { id: '1k', threshold: new Decimal(1_000) },
+  { id: '1m', threshold: new Decimal(1_000_000) },
+  { id: '1b', threshold: new Decimal(1_000_000_000) },
+  { id: '1t', threshold: new Decimal(1_000_000_000_000) },
+]
+
+function emitMilestonesOnce(before: Decimal, after: Decimal, alreadyHit: Set<string>) {
+  for (const m of MILESTONES) {
+    if (alreadyHit.has(m.id)) continue
+    if (before.lt(m.threshold) && after.gte(m.threshold)) {
+      alreadyHit.add(m.id)
+      enqueueEvent('game.click_milestone', { milestone: m.id })
+    }
+  }
+}
+
+const milestoneHits = new Set<string>()
 
 export interface GameStore extends GameState {
   hydrated: boolean
@@ -79,7 +99,9 @@ export const useGameStore = create<GameStore>()(
       tick: (dtMs) => {
         set((s) => {
           const now = Date.now()
+          const before = s.totalBlocksEver
           let next = applyTick(s, dtMs, now)
+          emitMilestonesOnce(before, next.totalBlocksEver, milestoneHits)
 
           if (next.activeEvent && now >= next.activeEvent.expiresAt) {
             const wasTgLeak = next.activeEvent.id === 'telegram-leak'
@@ -127,7 +149,9 @@ export const useGameStore = create<GameStore>()(
       click: () => {
         set((s) => {
           const now = Date.now()
+          const before = s.totalBlocksEver
           const next = applyClick(s, now)
+          emitMilestonesOnce(before, next.totalBlocksEver, milestoneHits)
           const newly = findNewlyUnlocked(
             ACHIEVEMENTS,
             next,
@@ -158,6 +182,7 @@ export const useGameStore = create<GameStore>()(
           purchasedClickUpgrades,
           clickValue,
         })
+        enqueueEvent('game.upgrade_purchased', { id })
       },
 
       purchaseCensor: (id, count) => {
@@ -187,6 +212,7 @@ export const useGameStore = create<GameStore>()(
           censorCounts,
           cps,
         })
+        enqueueEvent('game.censor_purchased', { id, count: n })
       },
 
       dismissOfflineEarnings: () => {
@@ -250,6 +276,7 @@ export const useGameStore = create<GameStore>()(
               : computePrestigeMult(newStars),
         }
         set(next)
+        enqueueEvent('game.event_clicked', { id: def.id })
       },
 
       performPrestige: () => {
@@ -258,6 +285,7 @@ export const useGameStore = create<GameStore>()(
         if (gain <= 0) return
         const newStars = projectedStars(s.totalBlocksEver)
         const now = Date.now()
+        enqueueEvent('game.prestige_done', { gainedStars: gain, totalStars: newStars })
         set({
           blocks: new Decimal(0),
           clickValue: new Decimal(1),
@@ -324,6 +352,7 @@ export const useGameStore = create<GameStore>()(
         lastTick: s.lastTick,
         tickCount: s.tickCount,
         uptimeStartMs: s.uptimeStartMs,
+        playtimeSeconds: s.playtimeSeconds,
         purchasedClickUpgrades: s.purchasedClickUpgrades,
         censorCounts: s.censorCounts,
         unlockedAchievements: s.unlockedAchievements,
@@ -342,6 +371,9 @@ export const useGameStore = create<GameStore>()(
             telegramLeakStreak: 0,
             prestigeStars: 0,
           }
+        }
+        if (fromVersion <= 3) {
+          p = { ...p, playtimeSeconds: 0 }
         }
         if (fromVersion > CURRENT_SAVE_VERSION) {
           console.warn(

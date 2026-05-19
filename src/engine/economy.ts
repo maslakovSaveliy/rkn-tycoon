@@ -18,6 +18,7 @@ export function applyTick(state: GameState, dtMs: number, now: number = Date.now
     totalBlocksEver: state.totalBlocksEver.add(passive),
     lastTick: Date.now(),
     tickCount: state.tickCount + 1,
+    playtimeSeconds: state.playtimeSeconds + dtSec,
     activeMultipliers,
   }
 }

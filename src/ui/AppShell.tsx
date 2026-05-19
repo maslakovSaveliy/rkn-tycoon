@@ -12,6 +12,7 @@ import { BlocksCounter } from './BlocksCounter'
 import { ClickButton } from './ClickButton'
 import { EpauletIndicator } from './EpauletIndicator'
 import { EventOverlay } from './EventOverlay'
+import { LeaderboardButton } from './LeaderboardButton'
 import { LogoBanner } from './LogoBanner'
 import { OfflineProgressModal } from './OfflineProgressModal'
 import { PlusPopup, type PopupController } from './PlusPopup'
@@ -85,6 +86,7 @@ export function AppShell() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <PrestigeButton />
+          <LeaderboardButton />
           <AchievementsButton />
           <SoundToggle />
           <AuthButton />

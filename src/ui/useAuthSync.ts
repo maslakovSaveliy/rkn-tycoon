@@ -131,6 +131,7 @@ function snapshotPersistable(s: ReturnType<typeof useGameStore.getState>): GameS
     lastTick: s.lastTick,
     tickCount: s.tickCount,
     uptimeStartMs: s.uptimeStartMs,
+    playtimeSeconds: s.playtimeSeconds,
     purchasedClickUpgrades: s.purchasedClickUpgrades,
     censorCounts: s.censorCounts,
     offlineEarnings: null,

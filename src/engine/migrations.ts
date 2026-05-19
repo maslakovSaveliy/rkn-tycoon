@@ -30,6 +30,14 @@ export function migrate(payload: { version: number; state: unknown }): SavePaylo
     version = 3
   }
 
+  if (version === 3) {
+    state = {
+      ...(state as Partial<GameState>),
+      playtimeSeconds: 0,
+    }
+    version = 4
+  }
+
   if (version !== CURRENT_SAVE_VERSION) {
     throw new MigrationError(
       `Cannot migrate from save version ${String(version)} to ${String(CURRENT_SAVE_VERSION)}`,

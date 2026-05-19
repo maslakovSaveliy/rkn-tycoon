@@ -16,8 +16,8 @@ describe('migrate — identity at current version', () => {
   })
 })
 
-describe('migrate — v1 → v3 (chained through Phase 5)', () => {
-  it('seeds Phase-3 + Phase-5 fields on a v1 save without touching blocks', () => {
+describe('migrate — v1 → v4 (chained through Phase 10)', () => {
+  it('seeds Phase-3/5/10 fields on a v1 save without touching blocks', () => {
     const v1State = {
       blocks: new Decimal('500'),
       totalBlocksEver: new Decimal('500'),
@@ -36,31 +36,34 @@ describe('migrate — v1 → v3 (chained through Phase 5)', () => {
     expect(result.state.unlockedAchievements).toEqual([])
     expect(result.state.telegramLeakStreak).toBe(0)
     expect(result.state.prestigeStars).toBe(0)
+    expect(result.state.playtimeSeconds).toBe(0)
     expect(result.state.tickCount).toBe(50)
   })
 })
 
-describe('migrate — v2 → v3 (Phase 5 events + achievements)', () => {
-  it('seeds achievement + prestige fields on a Phase-3 save without touching upgrades', () => {
-    const v2State = {
+describe('migrate — v3 → v4 (Phase 10 leaderboards)', () => {
+  it('seeds playtimeSeconds=0 on a v3 save without touching anything else', () => {
+    const v3State = {
       blocks: new Decimal('1000'),
       totalBlocksEver: new Decimal('1000'),
       clickValue: new Decimal(2),
       cps: new Decimal(5),
-      prestigeMult: 1,
+      prestigeMult: 1.02,
       lastTick: 0,
       tickCount: 0,
       uptimeStartMs: 0,
       purchasedClickUpgrades: ['rubber-stamp'],
       censorCounts: { intern: 3 },
+      unlockedAchievements: ['first-complaint'],
+      telegramLeakStreak: 0,
+      prestigeStars: 1,
     }
-    const result = migrate({ version: 2, state: v2State })
+    const result = migrate({ version: 3, state: v3State })
     expect(result.version).toBe(CURRENT_SAVE_VERSION)
+    expect(result.state.playtimeSeconds).toBe(0)
     expect(result.state.purchasedClickUpgrades).toEqual(['rubber-stamp'])
-    expect(result.state.censorCounts).toEqual({ intern: 3 })
-    expect(result.state.unlockedAchievements).toEqual([])
-    expect(result.state.telegramLeakStreak).toBe(0)
-    expect(result.state.prestigeStars).toBe(0)
+    expect(result.state.prestigeStars).toBe(1)
+    expect(result.state.unlockedAchievements).toEqual(['first-complaint'])
   })
 })
 

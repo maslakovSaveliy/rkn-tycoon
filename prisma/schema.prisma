@@ -17,9 +17,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions Session[]
-  accounts Account[]
-  save     Save?
+  sessions    Session[]
+  accounts    Account[]
+  save        Save?
+  leaderboard LeaderboardEntry?
+  events      Event[]
 
   @@map("user")
 }
@@ -76,4 +78,34 @@ model Save {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("save")
+}
+
+model LeaderboardEntry {
+  userId          String   @id
+  // totalBlocksEver split into Decimal components for sortable Postgres queries.
+  // value = tbeMantissa * 10 ^ tbeExponent (1 <= |mantissa| < 10, integer exponent)
+  tbeMantissa     Float
+  tbeExponent     Int
+  prestigeStars   Int
+  playtimeSeconds Int
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tbeExponent(sort: Desc), tbeMantissa(sort: Desc)])
+  @@index([prestigeStars(sort: Desc)])
+  @@map("leaderboard_entry")
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  userId    String
+  sessionId String?
+  eventType String
+  payload   Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@map("event")
 }
