@@ -33,6 +33,8 @@ export interface GameStore extends GameState {
   performPrestige: () => void
   devSetBlocks: (raw: string) => void
   devSetCps: (raw: string) => void
+  /** Replace the entire game state from a server payload (after auth sync). */
+  applyServerSave: (state: GameState) => void
 }
 
 function computeClickValue(state: Pick<GameState, 'purchasedClickUpgrades'>): Decimal {
@@ -293,6 +295,20 @@ export const useGameStore = create<GameStore>()(
       },
       devSetCps: (raw) => {
         set({ cps: new Decimal(raw) })
+      },
+
+      applyServerSave: (incoming) => {
+        set({
+          ...incoming,
+          // Session-scoped fields stay local — server save never carries them.
+          activeEvent: null,
+          activeMultipliers: [],
+          clickBoosts: [],
+          achievementToastQueue: [],
+          offlineEarnings: null,
+          nextEventSpawnAt: 0,
+          lastTick: Date.now(),
+        })
       },
     }),
     {

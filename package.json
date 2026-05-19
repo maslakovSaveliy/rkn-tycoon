@@ -30,8 +30,10 @@
     "verify": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "^1.6.11",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "7.8.0",
+    "better-auth": "1.6.11",
     "break_infinity.js": "2.2.0",
     "next": "15.5.18",
     "pg": "^8.20.0",
@@ -40,6 +42,7 @@
     "react-dom": "19.2.6",
     "server-only": "^0.0.1",
     "three": "^0.184.0",
+    "zod": "^4.4.3",
     "zustand": "5.0.13"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@ import { useGameStore } from '@/state/gameStore'
 import { flushPendingSave } from '@/state/persistStorage'
 import { AchievementToastStack } from './AchievementToast'
 import { AchievementsButton } from './AchievementsPanel'
+import { AuthButton } from './AuthButton'
 import { AuthorCredit } from './AuthorCredit'
 import { BlocksCounter } from './BlocksCounter'
 import { ClickButton } from './ClickButton'
@@ -17,6 +18,7 @@ import { PlusPopup, type PopupController } from './PlusPopup'
 import { PrestigeButton } from './PrestigeButton'
 import { SoundToggle } from './SoundToggle'
 import { UpgradesMenuButton } from './UpgradesMenu'
+import { useAuthSync } from './useAuthSync'
 import { useTabTitle } from './useTabTitle'
 
 export function AppShell() {
@@ -26,6 +28,7 @@ export function AppShell() {
   const popupRef = useRef<PopupController | null>(null)
 
   useTabTitle()
+  useAuthSync()
 
   useEffect(() => {
     if (!hydrated) return
@@ -80,10 +83,11 @@ export function AppShell() {
           <UpgradesMenuButton />
           <EpauletIndicator />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <PrestigeButton />
           <AchievementsButton />
           <SoundToggle />
+          <AuthButton />
         </div>
       </header>
 
