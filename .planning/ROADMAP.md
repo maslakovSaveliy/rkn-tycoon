@@ -18,7 +18,7 @@ Vertical-slice MVP русскоязычного idle-clicker'а сатириче
 - [x] **Phase 6: Prestige («Звёзды Цензора»)** — reset на 1e9 lifetime blocks, sqrt-формула, +2% per star, press-release confirm modal, эполет indicator.
 - [x] **Phase 7: ASCII Polish + Flavor Copy** — Cyrillic monospace fonts, box-drawing borders, CRT glow, ≤5-color palette, бюрократический копирайт на каждой сущности, responsive layout, tone re-audit. Сюда же `app/layout.tsx` metadata (default OG, Twitter card).
 - [x] **Phase 8: SEO bundle (OG + robots + sitemap)** — static OG-картинка матчит favicon (РКН + хеш-рамка), `robots.txt` + `sitemap.xml` через App Router file-conventions. Landing-редизайн `/` и динамическая `/api/og` пропущены по решению пользователя.
-- [ ] **Phase 9: Auth + Save Sync (BetterAuth)** — email+password без verification, anonymous plugin, `onLinkAccount` миграция localStorage save → Supabase Postgres, server-side save read/write, rate-limit.
+- [x] **Phase 9: Auth + Save Sync (BetterAuth)** — email+password без verification, anonymous plugin, `onLinkAccount` миграция localStorage save → Supabase Postgres, server-side save read/write, rate-limit.
 - [ ] **Phase 10: Leaderboards + Game Analytics** — Postgres `LeaderboardEntry` + `Event`; страница `/leaderboard` (top 100 по blocks + по stars); submit-sanity (монотонность, BPS-cap); веб-аналитика (Plausible/PostHog — выбор в плане Phase 10).
 - [ ] **Phase 11: Production Deploy (Vercel + Supabase)** — Supabase-проект подключён, env vars в Vercel, custom domain, `prisma db push` через `DIRECT_URL`, health-check после deploy.
 
@@ -113,7 +113,7 @@ Vertical-slice MVP русскоязычного idle-clicker'а сатириче
 | 6. Prestige («Звёзды Цензора») | 1/1 | Done | 2026-05-18 |
 | 7. ASCII Polish + Flavor Copy | 1/1 | Done | 2026-05-18 |
 | 8. SEO bundle (OG + robots + sitemap) | 1/1 | Done | 2026-05-19 |
-| 9. Auth + Save Sync (BetterAuth) | 0/TBD | Not started | - |
+| 9. Auth + Save Sync (BetterAuth) | 1/1 | Done | 2026-05-19 |
 | 10. Leaderboards + Game Analytics | 0/TBD | Not started | - |
 | 11. Production Deploy (Vercel + Supabase) | 0/TBD | Not started | - |
 
