@@ -17,6 +17,7 @@ import { LogoBanner } from './LogoBanner'
 import { OfflineProgressModal } from './OfflineProgressModal'
 import { PlusPopup, type PopupController } from './PlusPopup'
 import { PrestigeButton } from './PrestigeButton'
+import { RepoLink } from './RepoLink'
 import { SettingsMenuButton } from './SettingsMenu'
 import { SoundToggle } from './SoundToggle'
 import { UpgradesMenuButton } from './UpgradesMenu'
@@ -112,6 +113,7 @@ export function AppShell() {
       <OfflineProgressModal />
       <AchievementToastStack />
       <EventOverlay />
+      <RepoLink />
       <AuthorCredit />
     </main>
   )
