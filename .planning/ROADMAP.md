@@ -20,7 +20,7 @@ Vertical-slice MVP русскоязычного idle-clicker'а сатириче
 - [x] **Phase 8: SEO bundle (OG + robots + sitemap)** — static OG-картинка матчит favicon (РКН + хеш-рамка), `robots.txt` + `sitemap.xml` через App Router file-conventions. Landing-редизайн `/` и динамическая `/api/og` пропущены по решению пользователя.
 - [x] **Phase 9: Auth + Save Sync (BetterAuth)** — email+password без verification, anonymous plugin, `onLinkAccount` миграция localStorage save → Supabase Postgres, server-side save read/write, rate-limit.
 - [x] **Phase 10: Leaderboards + Game Analytics** — Postgres `LeaderboardEntry` + `Event`; страница `/leaderboard` (top 100 по blocks + по stars); submit-sanity (монотонность, BPS-cap); веб-аналитика (Plausible/PostHog — выбор в плане Phase 10).
-- [ ] **Phase 11: Production Deploy (Vercel + Supabase)** — Supabase-проект подключён, env vars в Vercel, custom domain, `prisma db push` через `DIRECT_URL`, health-check после deploy.
+- [x] **Phase 11: Production Deploy (Vercel + Supabase)** — Supabase-проект подключён, env vars в Vercel, custom domain `rkn-tycoon.ru` через NS-делегирование, `prisma db push` через `DIRECT_URL`, health-check после deploy.
 
 ## Phase Details
 
@@ -115,7 +115,7 @@ Vertical-slice MVP русскоязычного idle-clicker'а сатириче
 | 8. SEO bundle (OG + robots + sitemap) | 1/1 | Done | 2026-05-19 |
 | 9. Auth + Save Sync (BetterAuth) | 1/1 | Done | 2026-05-19 |
 | 10. Leaderboards + Game Analytics | 1/1 | Done | 2026-05-19 |
-| 11. Production Deploy (Vercel + Supabase) | 0/TBD | Not started | - |
+| 11. Production Deploy (Vercel + Supabase) | 1/1 | Done | 2026-05-19 |
 
 ---
 *Last updated: 2026-05-19 — switched deploy target to Vercel + Supabase, removed monetization (Phase 11) and ads (Phase 12) entirely. Old phase 13 collapsed into new phase 11.*
