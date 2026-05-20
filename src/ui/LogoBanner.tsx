@@ -1,30 +1,36 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
+import { StaticAsciiLogo } from './StaticAsciiLogo'
 
-const AsciiLogo = dynamic(
-  () => import('./AsciiLogo').then((m) => m.AsciiLogo),
-  {
-    ssr: false,
-    loading: () => <LogoFallback />,
-  },
-)
+interface AsciiLogoProps {
+  width: number
+  height: number
+}
 
 export function LogoBanner() {
   const dims = useResponsiveDims()
+  const [Animated, setAnimated] = useState<ComponentType<AsciiLogoProps> | null>(
+    null,
+  )
+
+  useEffect(() => {
+    let alive = true
+    void import('./AsciiLogo').then((mod) => {
+      if (alive) setAnimated(() => mod.AsciiLogo)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   return (
     <div className="flex justify-center select-none">
-      <AsciiLogo width={dims.w} height={dims.h} />
-    </div>
-  )
-}
-
-function LogoFallback() {
-  return (
-    <div className="font-mono font-bold text-rkn-fg text-glow text-2xl tracking-[0.35em] uppercase">
-      РКН&nbsp;СИМУЛЯТОР
+      {Animated ? (
+        <Animated width={dims.w} height={dims.h} />
+      ) : (
+        <StaticAsciiLogo width={dims.w} height={dims.h} />
+      )}
     </div>
   )
 }
