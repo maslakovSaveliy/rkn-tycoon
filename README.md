@@ -91,41 +91,10 @@ src/
 
 ---
 
-## Что готово
-
-Phases 1-8 закрыты. Игра играбельна end-to-end:
-
-| # | Фаза | Что внутри |
-|---|------|-----------|
-| 1 | Foundation | Next + TS + Tailwind + Prisma + ESLint boundary + Vitest |
-| 2 | Click Loop | Кнопка + procedural Web Audio click + К/М/Б/Т formatter + pooled +N popup + sound toggle |
-| 3 | Idle Loop | 10 click upgrades + 8 censors с 1.15ⁿ ramp + ×1/×10/×Max + 10s throttled save |
-| 4 | Offline Progress | 1h cap + «Пока вас не было…» модалка |
-| 5 | Events + Achievements | 6 random events (multiplier layer) + 12 ачивок + toast queue + grid panel |
-| 6 | Prestige | «Звёзды Цензора» reset на 1e9 lifetime, sqrt formula, +2%/star, two-step press-release modal |
-| 7 | ASCII Polish + SEO base | JetBrains Mono Cyrillic, 5-color palette, `.ascii-frame` + `.text-glow`, layout Metadata |
-| 8 | SEO bundle | Favicon (РКН), OG-картинка матчит favicon, `robots.txt`, `sitemap.xml` |
-
-Дополнительно (вне нумерованных фаз):
-- Mobile-first AppShell rewrite (scroll-locked, vertical stack, upgrades menu modal)
-- Three.js + AsciiEffect rotating ASCII logo с auto-fit-to-frustum
-- Save schema v3 с миграциями (v1 → v2 → v3 chain)
-- 75/75 vitest зелёных
-
-## Что дальше
-
-- **Phase 9** — Auth + Save Sync (BetterAuth email+password без verification, anonymous plugin → `onLinkAccount` миграция localStorage → БД)
-- **Phase 10** — Leaderboards top-100 + game event analytics в Postgres
-- **Phase 11** — Production deploy на Vercel + Supabase
-
-Полный план — `.planning/ROADMAP.md`.
-
----
-
 ## Workflow
 
 - Атомарные коммиты с conventional commits (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`)
-- Ветка `main` (не `master`)
+- Ветка `main`
 - Каждое крупное архитектурное решение обсуждается перед реализацией и логируется в `.planning/phases/NN-*/NN-PLAN.md` как `D-NN` decision
 
 ---
