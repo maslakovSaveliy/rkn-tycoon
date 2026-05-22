@@ -6,6 +6,7 @@ import { CENSORS, CENSOR_COST_RATIO, CENSORS_BY_ID } from '@/data/censors'
 import { CLICK_UPGRADES_BY_ID } from '@/data/clickUpgrades'
 import { EVENTS_BY_ID, pickRandomEvent, resolveEffect } from '@/data/events'
 import { applyClick, applyTick, findNewlyUnlocked } from '@/engine'
+import { migrateState } from '@/engine/migrations'
 import {
   computePrestigeMult,
   pendingStarGain,
@@ -370,28 +371,17 @@ export const useGameStore = create<GameStore>()(
         prestigeStars: s.prestigeStars,
       }),
       migrate: (persisted, fromVersion) => {
-        let p = persisted as Partial<GameStore>
-        if (fromVersion <= 1) {
-          p = { ...p, purchasedClickUpgrades: [], censorCounts: {} }
-        }
-        if (fromVersion <= 2) {
-          p = {
-            ...p,
-            unlockedAchievements: [],
-            telegramLeakStreak: 0,
-            prestigeStars: 0,
-          }
-        }
-        if (fromVersion <= 3) {
-          p = { ...p, playtimeSeconds: 0 }
-        }
         if (fromVersion > CURRENT_SAVE_VERSION) {
           console.warn(
             `[save] dropping save from future version ${String(fromVersion)} (current: ${String(CURRENT_SAVE_VERSION)})`,
           )
           return { ...initialState() } as unknown as Partial<GameStore>
         }
-        return p
+        // Delegate to the single migration ladder in engine/migrations.ts so
+        // codec-rehydrate and persist-rehydrate can't drift apart on future
+        // schema bumps. fromVersion is 1-indexed; ladder patches v1→v2, v2→v3, etc.
+        const { state } = migrateState(persisted, fromVersion)
+        return state as unknown as Partial<GameStore>
       },
       onRehydrateStorage: () => (_state, err) => {
         if (err) {

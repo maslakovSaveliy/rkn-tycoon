@@ -8,35 +8,41 @@ export class MigrationError extends Error {
   }
 }
 
-export function migrate(payload: { version: number; state: unknown }): SavePayload {
-  let { version, state } = payload
+/** Apply per-version patches in sequence. Single source of truth — shared
+ * by both the standalone codec (engine/migrations.migrate) and the Zustand
+ * persist middleware (state/gameStore migrate config). */
+export function migrateState(
+  state: unknown,
+  fromVersion: number,
+): { state: GameState; version: number } {
+  let s = state as Partial<GameState>
+  let v = fromVersion
 
-  if (version === 1) {
-    state = {
-      ...(state as Partial<GameState>),
-      purchasedClickUpgrades: [],
-      censorCounts: {},
-    }
-    version = 2
+  if (v === 1) {
+    s = { ...s, purchasedClickUpgrades: [], censorCounts: {} }
+    v = 2
   }
 
-  if (version === 2) {
-    state = {
-      ...(state as Partial<GameState>),
+  if (v === 2) {
+    s = {
+      ...s,
       unlockedAchievements: [],
       telegramLeakStreak: 0,
       prestigeStars: 0,
     }
-    version = 3
+    v = 3
   }
 
-  if (version === 3) {
-    state = {
-      ...(state as Partial<GameState>),
-      playtimeSeconds: 0,
-    }
-    version = 4
+  if (v === 3) {
+    s = { ...s, playtimeSeconds: 0 }
+    v = 4
   }
+
+  return { state: s as GameState, version: v }
+}
+
+export function migrate(payload: { version: number; state: unknown }): SavePayload {
+  const { state, version } = migrateState(payload.state, payload.version)
 
   if (version !== CURRENT_SAVE_VERSION) {
     throw new MigrationError(
@@ -44,7 +50,7 @@ export function migrate(payload: { version: number; state: unknown }): SavePaylo
     )
   }
 
-  return { version: CURRENT_SAVE_VERSION, state: state as GameState }
+  return { version: CURRENT_SAVE_VERSION, state }
 }
 
 export function safeRehydrate(decoded: unknown): SavePayload {
