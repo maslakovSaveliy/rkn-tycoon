@@ -20,10 +20,10 @@ prestige через «Звёзды Цензора».
 | 3D-логотип | three.js + AsciiEffect (генеративный)                    |
 | Backend    | Next API Routes · Prisma 7                               |
 | Database   | Supabase (Postgres)                                      |
-| Auth       | BetterAuth (планируется в Phase 9)                       |
-| Tests      | Vitest 4                                                  |
+| Auth       | BetterAuth.                                              |
+| Tests      | Vitest 4                                                 |
 | Lint       | ESLint 9 (flat config) с 7-зон import-boundary           |
-| Deploy     | Vercel                                                    |
+| Deploy     | Vercel                                                   |
 
 ---
 
