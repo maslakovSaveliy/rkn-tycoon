@@ -255,10 +255,14 @@ export const useGameStore = create<GameStore>()(
           ? s.totalBlocksEver.add(blocksGain)
           : s.totalBlocksEver
 
+        // The streak tracks consecutive telegram-leak events resolved by click.
+        // A non-TG click is neutral — it neither extends nor breaks the streak.
+        // The only reset is on TG-leak expiry without a click, handled in the
+        // tick path above.
         const telegramLeakStreak =
           def.id === 'telegram-leak'
             ? s.telegramLeakStreak + 1
-            : 0
+            : s.telegramLeakStreak
 
         const newStars = s.prestigeStars + (result.prestigeStarsDelta ?? 0)
         const next: Partial<GameStore> = {
