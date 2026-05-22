@@ -2,7 +2,7 @@ import 'server-only'
 import { betterAuth } from 'better-auth'
 import { prismaAdapter } from '@better-auth/prisma-adapter'
 import { anonymous } from 'better-auth/plugins'
-import { db } from '@/lib/db'
+import { dbAuth } from '@/lib/dbAuth'
 
 const isProd = process.env.NODE_ENV === 'production'
 const authSecret =
@@ -41,7 +41,7 @@ export const auth = betterAuth({
   baseURL: authUrl,
   secret: authSecret,
   trustedOrigins,
-  database: prismaAdapter(db, { provider: 'postgresql' }),
+  database: prismaAdapter(dbAuth, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
@@ -60,22 +60,28 @@ export const auth = betterAuth({
     anonymous({
       emailDomainName: 'anonymous.rkn-tycoon.local',
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        const anonSave = await db.save.findUnique({
+        // Anon → registered save migration. Uses dbAuth (BYPASSRLS) because
+        // we're touching two different users' rows in a single operation
+        // (anonymousUser AND newUser) — withRls would scope us to one user
+        // at a time. This is a service-layer hand-off, not a user action.
+        const anonSave = await dbAuth.save.findUnique({
           where: { userId: anonymousUser.user.id },
         })
         if (!anonSave) return
 
-        const existing = await db.save.findUnique({
+        const existing = await dbAuth.save.findUnique({
           where: { userId: newUser.user.id },
         })
 
         // Server-side conflict resolution: newer updatedAt wins.
         if (existing && existing.updatedAt > anonSave.updatedAt) {
-          await db.save.delete({ where: { userId: anonymousUser.user.id } })
+          await dbAuth.save.delete({
+            where: { userId: anonymousUser.user.id },
+          })
           return
         }
 
-        await db.save.upsert({
+        await dbAuth.save.upsert({
           where: { userId: newUser.user.id },
           create: {
             userId: newUser.user.id,
@@ -89,7 +95,7 @@ export const auth = betterAuth({
             updatedAt: anonSave.updatedAt,
           },
         })
-        await db.save.delete({ where: { userId: anonymousUser.user.id } })
+        await dbAuth.save.delete({ where: { userId: anonymousUser.user.id } })
       },
     }),
   ],
