@@ -13,6 +13,7 @@ export function AuthModal({ onClose }: Props) {
   const [mode, setMode] = useState<Mode>('signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [nickname, setNickname] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,7 +33,11 @@ export function AuthModal({ onClose }: Props) {
     setSubmitting(true)
     try {
       if (mode === 'signup') {
-        const res = await signUp.email({ email, password, name: email.split('@')[0] ?? '' })
+        // Use the explicit nickname if provided; otherwise leave name empty —
+        // leaderboardRepo.pickDisplayName falls back to an anonymized 'игрок_XXXXXX'
+        // so the email local-part is never published as a public display name.
+        const trimmedNick = nickname.trim().slice(0, 24)
+        const res = await signUp.email({ email, password, name: trimmedNick })
         if (res.error) {
           setError(res.error.message ?? 'не удалось зарегистрироваться')
           return
@@ -96,6 +101,26 @@ export function AuthModal({ onClose }: Props) {
             className="border border-rkn-fg/60 bg-transparent text-rkn-fg px-2 py-2 font-mono text-sm focus:border-rkn-fg focus:outline-none"
           />
         </label>
+
+        {mode === 'signup' && (
+          <label className="flex flex-col gap-1 text-xs uppercase tracking-wider">
+            ник (опционально)
+            <input
+              type="text"
+              autoComplete="nickname"
+              maxLength={24}
+              value={nickname}
+              onChange={(e) => {
+                setNickname(e.target.value)
+              }}
+              placeholder="как показывать в лидерборде"
+              className="border border-rkn-fg/60 bg-transparent text-rkn-fg px-2 py-2 font-mono text-sm focus:border-rkn-fg focus:outline-none placeholder:text-rkn-fg/30 normal-case tracking-normal"
+            />
+            <span className="text-[10px] opacity-50 normal-case tracking-normal">
+              пусто — анонимный «игрок_XXXXXX»
+            </span>
+          </label>
+        )}
 
         <label className="flex flex-col gap-1 text-xs uppercase tracking-wider">
           пароль

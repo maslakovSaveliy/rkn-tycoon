@@ -74,15 +74,19 @@ export async function getTop(by: LeaderboardSort, limit = 100): Promise<Leaderbo
 
   return rows.map((r) => ({
     userId: r.userId,
-    name: pickDisplayName(r.user.name, r.user.email),
+    name: pickDisplayName(r.user.name, r.userId),
     totalBlocks: { mantissa: r.tbeMantissa, exponent: r.tbeExponent },
     prestigeStars: r.prestigeStars,
     playtimeSeconds: r.playtimeSeconds,
   }))
 }
 
-function pickDisplayName(name: string | null, email: string): string {
-  if (name && name.trim()) return name
-  const at = email.indexOf('@')
-  return at > 0 ? email.slice(0, at) : 'игрок'
+/** Public display name on the leaderboard.
+ * Never falls back to the email local-part — that's PII (firstname.lastname@…
+ * etc). When the player skipped the optional nickname field, we show an
+ * anonymized short hash of their userId instead. */
+export function pickDisplayName(name: string | null, userId: string): string {
+  const trimmed = name?.trim()
+  if (trimmed) return trimmed
+  return `игрок_${userId.slice(0, 6)}`
 }
