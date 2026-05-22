@@ -61,7 +61,16 @@ export async function upsertSaveIfNewer(input: UpsertInput): Promise<UpsertResul
 
   const lb = deriveLeaderboard(input.gameState)
   if (lb) {
-    await upsertFromSave({ userId: input.userId, ...lb })
+    // Best-effort: a sanity-check rejection here doesn't fail the whole save
+    // (the player's local save is still authoritative for them), it just keeps
+    // the cheat off the public leaderboard. Server logs the reason.
+    const lbResult = await upsertFromSave({ userId: input.userId, ...lb })
+    if (!lbResult.ok) {
+      console.warn('[saveRepo] leaderboard rejected:', {
+        userId: input.userId,
+        reason: lbResult.reason,
+      })
+    }
   }
 
   return {

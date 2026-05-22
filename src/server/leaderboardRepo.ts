@@ -19,21 +19,90 @@ export interface UpsertInput {
   playtimeSeconds: number
 }
 
-export async function upsertFromSave(input: UpsertInput): Promise<void> {
+export type UpsertResult =
+  | { ok: true }
+  | { ok: false; reason: SanityReason }
+
+export type SanityReason =
+  | 'invalid_numbers'
+  | 'min_playtime'
+  | 'bps_ceiling'
+  | 'tbe_downgrade'
+
+/** Below this we don't trust the submission at all — playing for 1 minute
+ * already covers warm-up time and prevents instant-cheat dominance. */
+export const MIN_PLAYTIME_SEC = 60
+/** Anti-cheat ceiling baseline (log10). Empirically generous: at endgame with
+ * fully maxed censors and click upgrades the legitimate exponent grows at
+ * roughly 1 per minute. 25 gives ~14 orders of magnitude headroom above what
+ * any human could legitimately reach in v1 economy. */
+const TBE_CEILING_BASELINE_LOG = 25
+const PRESTIGE_PER_STAR = 0.02
+
+/** Server-side BPS-vs-playtime ceiling. Allows TBE up to:
+ *   10^(baseline + log10(playtime) + log10(1 + 0.02*stars))
+ * which scales linearly with time and with the prestige multiplier. */
+export function computeMaxTbeExponent(
+  playtimeSeconds: number,
+  prestigeStars: number,
+): number {
+  const t = Math.max(1, playtimeSeconds)
+  const prestigeMult = 1 + PRESTIGE_PER_STAR * Math.max(0, prestigeStars)
+  return (
+    TBE_CEILING_BASELINE_LOG + Math.log10(t) + Math.log10(prestigeMult)
+  )
+}
+
+export function compareTbe(am: number, ae: number, bm: number, be: number): number {
+  if (ae !== be) return ae < be ? -1 : 1
+  if (am === bm) return 0
+  return am < bm ? -1 : 1
+}
+
+export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> {
   if (!Number.isFinite(input.tbeMantissa) || !Number.isFinite(input.tbeExponent)) {
-    return
+    return { ok: false, reason: 'invalid_numbers' }
   }
-  if (input.prestigeStars < 0 || input.playtimeSeconds < 0) return
+  if (input.prestigeStars < 0 || input.playtimeSeconds < 0) {
+    return { ok: false, reason: 'invalid_numbers' }
+  }
+  if (input.playtimeSeconds < MIN_PLAYTIME_SEC) {
+    return { ok: false, reason: 'min_playtime' }
+  }
+
+  // Anti-cheat: implied BPS must stay under the ceiling. Mantissa is in [1,10)
+  // post-normalization so contributes at most ~0.95 to the effective exponent —
+  // we compare exponent against the ceiling with that margin baked in.
+  const maxExp = computeMaxTbeExponent(input.playtimeSeconds, input.prestigeStars)
+  if (input.tbeExponent > maxExp) {
+    console.warn('[leaderboard] rejected: bps_ceiling', {
+      userId: input.userId,
+      tbeExponent: input.tbeExponent,
+      maxExp,
+      playtimeSeconds: input.playtimeSeconds,
+      prestigeStars: input.prestigeStars,
+    })
+    return { ok: false, reason: 'bps_ceiling' }
+  }
 
   const existing = await db.leaderboardEntry.findUnique({
     where: { userId: input.userId },
   })
 
   if (existing) {
-    if (compareTbe(existing.tbeMantissa, existing.tbeExponent, input.tbeMantissa, input.tbeExponent) > 0) {
-      return
+    const cmp = compareTbe(
+      existing.tbeMantissa,
+      existing.tbeExponent,
+      input.tbeMantissa,
+      input.tbeExponent,
+    )
+    // Monotonicity: TBE must never decrease at the same-or-lower star count.
+    if (cmp > 0 && existing.prestigeStars >= input.prestigeStars) {
+      return { ok: false, reason: 'tbe_downgrade' }
     }
-    if (existing.prestigeStars > input.prestigeStars) return
+    if (existing.prestigeStars > input.prestigeStars) {
+      return { ok: false, reason: 'tbe_downgrade' }
+    }
   }
 
   await db.leaderboardEntry.upsert({
@@ -52,11 +121,8 @@ export async function upsertFromSave(input: UpsertInput): Promise<void> {
       playtimeSeconds: input.playtimeSeconds,
     },
   })
-}
 
-function compareTbe(am: number, ae: number, bm: number, be: number): number {
-  if (ae !== be) return ae - be
-  return am - bm
+  return { ok: true }
 }
 
 export async function getTop(by: LeaderboardSort, limit = 100): Promise<LeaderboardRow[]> {
