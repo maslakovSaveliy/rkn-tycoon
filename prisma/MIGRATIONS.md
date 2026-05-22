@@ -75,6 +75,47 @@ alter default privileges in schema public
   grant all on sequences to auth_service;
 ```
 
+## RLS smoke check (manual)
+
+Run this after any policy change to verify defense-in-depth still works.
+Free-tier Supabase doesn't support DB branches, so we don't have an
+automated integration suite — these are the curl checks against a
+running `pnpm dev`:
+
+```bash
+# 1. Signup creates a session cookie (BetterAuth → auth_service, BYPASSRLS).
+curl -s -X POST 'http://localhost:3000/api/auth/sign-up/email' \
+  -H 'Content-Type: application/json' \
+  --cookie-jar /tmp/c.txt \
+  -d '{"email":"rls-test@example.com","password":"testtest123","name":"rls"}'
+
+# 2. GET own save (owner_all policy + withRls GUC). New user → {save: null}.
+curl -s --cookie /tmp/c.txt http://localhost:3000/api/save
+
+# 3. POST own save (with check ("userId" = current_user_id())). Should 200.
+curl -s -X POST --cookie /tmp/c.txt -H 'Content-Type: application/json' \
+  -d '{"gameState":{"blocks":{"__D":"100"},"totalBlocksEver":{"__D":"100"},"playtimeSeconds":120,"prestigeStars":0},"version":5,"updatedAt":1779480000000}' \
+  http://localhost:3000/api/save
+
+# 4. Leaderboard (public_read policy + user_public_lookup with column GRANT).
+curl -s 'http://localhost:3000/api/leaderboard?by=blocks'
+
+# 5. Cleanup — delete the test user via Supabase MCP (or SQL editor):
+#    DELETE FROM "user" WHERE email = 'rls-test@example.com';
+```
+
+Expected RLS deny invariants (verify in psql / Supabase SQL editor):
+
+- `SET ROLE app_user; SELECT * FROM "save";` → `0 rows` (no GUC set)
+- `SET ROLE app_user; SELECT email FROM "user";` → `permission denied
+  for column email` (column GRANT excludes it)
+- `BEGIN; SELECT set_config('app.current_user_id', '<other-uid>', true);
+  INSERT INTO "save" (...) VALUES (...);` with `userId = current user`
+  but GUC = different user → `new row violates row-level security policy`
+
+If any of these allow data through, an RLS policy is permissive when it
+shouldn't be — rollback per the steps below and patch.
+
 ## Troubleshooting
 
 ### "permission denied for table foo" from app code
