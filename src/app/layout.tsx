@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { JetBrains_Mono } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const jetbrainsMono = JetBrains_Mono({
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ru" className={jetbrainsMono.variable}>
       <body>
         {children}
+        <Analytics />
         <div className="crt-overlay" aria-hidden />
       </body>
     </html>
