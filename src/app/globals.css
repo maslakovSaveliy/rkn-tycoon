@@ -22,6 +22,15 @@ body {
   overflow-x: hidden;
 }
 
+/* Prevent iOS Safari zoom-on-focus by ensuring inputs render at >=16px on small screens. */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 html:has(main.lock-scroll),
 body:has(main.lock-scroll) {
   overflow: hidden;

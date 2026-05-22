@@ -2,11 +2,11 @@ import Link from 'next/link'
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 text-center">
+    <main className="h-[100dvh] overflow-hidden flex flex-col items-center justify-center gap-8 p-6 text-center">
       <h1 className="text-4xl font-mono">RKN Tycoon</h1>
       <p className="max-w-md font-mono text-sm opacity-80">
         Идл-кликер про интернет-цензуру. Сатира. Кликайте «Заблокировать»,
-        копите блокировки, нанимайте цензоров. Демо — Phase 1 foundation.
+        копите блокировки, нанимайте цензоров.
       </p>
       <Link
         href="/play"
@@ -14,9 +14,6 @@ export default function HomePage() {
       >
         Играть →
       </Link>
-      <footer className="mt-12 text-xs opacity-40 font-mono">
-        v0.1.0 · Phase 1 · foundation
-      </footer>
     </main>
   )
 }

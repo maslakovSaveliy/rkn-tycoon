@@ -9,6 +9,7 @@ import { AchievementsButton } from './AchievementsPanel'
 import { AuthButton } from './AuthButton'
 import { AuthorCredit } from './AuthorCredit'
 import { BlocksCounter } from './BlocksCounter'
+import { BoostsPanel } from './BoostsPanel'
 import { ClickButton } from './ClickButton'
 import { EpauletIndicator } from './EpauletIndicator'
 import { EventOverlay } from './EventOverlay'
@@ -111,6 +112,7 @@ export function AppShell() {
         <ClickButton popupRef={popupRef} />
       </section>
 
+      <BoostsPanel />
       <PlusPopup controllerRef={popupRef} />
       <OfflineProgressModal />
       <AchievementToastStack />
