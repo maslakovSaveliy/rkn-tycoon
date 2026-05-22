@@ -1,6 +1,6 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
-import { db } from '@/lib/db'
+import { withRls } from '@/lib/withRls'
 
 export interface EventInput {
   eventType: string
@@ -42,10 +42,16 @@ export async function insertBatch(input: InsertBatchInput): Promise<{ inserted: 
     createdAt: clampClientCreatedAt(e.clientCreatedAt, now),
   }))
 
-  const result = await db.event.createMany({
-    data: rows,
-    skipDuplicates: true,
-  })
+  // RLS `event_owner_all` policy + `with check ("userId" = current_user_id())`
+  // ensures we cannot smuggle an event under a different userId even if `rows`
+  // is built incorrectly. set_config inside withRls is the only place where
+  // app.current_user_id gets stamped.
+  const result = await withRls(input.userId, (tx) =>
+    tx.event.createMany({
+      data: rows,
+      skipDuplicates: true,
+    }),
+  )
 
   return { inserted: result.count }
 }

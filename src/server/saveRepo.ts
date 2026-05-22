@@ -1,6 +1,6 @@
 import 'server-only'
-import { db } from '@/lib/db'
-import { upsertFromSave } from './leaderboardRepo'
+import { withRls } from '@/lib/withRls'
+import { upsertFromSaveInTx } from './leaderboardRepo'
 
 export interface SaveRow {
   gameState: unknown
@@ -9,7 +9,11 @@ export interface SaveRow {
 }
 
 export async function getSave(userId: string): Promise<SaveRow | null> {
-  const row = await db.save.findUnique({ where: { userId } })
+  // Owner-only read enforced by RLS: without the GUC the policy returns zero
+  // rows even though the query is otherwise unscoped.
+  const row = await withRls(userId, (tx) =>
+    tx.save.findUnique({ where: { userId } }),
+  )
   if (!row) return null
   return {
     gameState: row.gameState,
@@ -31,56 +35,67 @@ export interface UpsertResult {
 }
 
 export async function upsertSaveIfNewer(input: UpsertInput): Promise<UpsertResult> {
-  const existing = await db.save.findUnique({ where: { userId: input.userId } })
+  // One transaction for the whole flow: save read+upsert AND leaderboard
+  // upsert all happen under the same app.current_user_id GUC. RLS
+  // `with check ("userId" = current_user_id())` rejects any attempt to
+  // write a row for a different user even if input.userId is tampered.
+  return withRls(input.userId, async (tx) => {
+    const existing = await tx.save.findUnique({
+      where: { userId: input.userId },
+    })
 
-  if (existing && existing.updatedAt >= input.updatedAt) {
+    if (existing && existing.updatedAt >= input.updatedAt) {
+      return {
+        saved: false,
+        current: {
+          gameState: existing.gameState,
+          version: existing.version,
+          updatedAt: existing.updatedAt,
+        },
+      }
+    }
+
+    const upserted = await tx.save.upsert({
+      where: { userId: input.userId },
+      create: {
+        userId: input.userId,
+        gameState: input.gameState as object,
+        version: input.version,
+        updatedAt: input.updatedAt,
+      },
+      update: {
+        gameState: input.gameState as object,
+        version: input.version,
+        updatedAt: input.updatedAt,
+      },
+    })
+
+    const lb = deriveLeaderboard(input.gameState)
+    if (lb) {
+      // Best-effort: a sanity-check rejection here doesn't fail the whole save
+      // (the player's local save is still authoritative for them), it just keeps
+      // the cheat off the public leaderboard. Server logs the reason.
+      const lbResult = await upsertFromSaveInTx(tx, {
+        userId: input.userId,
+        ...lb,
+      })
+      if (!lbResult.ok) {
+        console.warn('[saveRepo] leaderboard rejected:', {
+          userId: input.userId,
+          reason: lbResult.reason,
+        })
+      }
+    }
+
     return {
-      saved: false,
+      saved: true,
       current: {
-        gameState: existing.gameState,
-        version: existing.version,
-        updatedAt: existing.updatedAt,
+        gameState: upserted.gameState,
+        version: upserted.version,
+        updatedAt: upserted.updatedAt,
       },
     }
-  }
-
-  const upserted = await db.save.upsert({
-    where: { userId: input.userId },
-    create: {
-      userId: input.userId,
-      gameState: input.gameState as object,
-      version: input.version,
-      updatedAt: input.updatedAt,
-    },
-    update: {
-      gameState: input.gameState as object,
-      version: input.version,
-      updatedAt: input.updatedAt,
-    },
   })
-
-  const lb = deriveLeaderboard(input.gameState)
-  if (lb) {
-    // Best-effort: a sanity-check rejection here doesn't fail the whole save
-    // (the player's local save is still authoritative for them), it just keeps
-    // the cheat off the public leaderboard. Server logs the reason.
-    const lbResult = await upsertFromSave({ userId: input.userId, ...lb })
-    if (!lbResult.ok) {
-      console.warn('[saveRepo] leaderboard rejected:', {
-        userId: input.userId,
-        reason: lbResult.reason,
-      })
-    }
-  }
-
-  return {
-    saved: true,
-    current: {
-      gameState: upserted.gameState,
-      version: upserted.version,
-      updatedAt: upserted.updatedAt,
-    },
-  }
 }
 
 interface LbMetrics {

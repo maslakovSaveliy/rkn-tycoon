@@ -11,9 +11,22 @@ vi.mock('server-only', () => ({}))
 
 const mockFindUnique = vi.fn()
 const mockUpsert = vi.fn()
+const mockExecuteRaw = vi.fn().mockResolvedValue(0)
+
+// Mock $transaction to immediately invoke its callback with a tx-shaped
+// object exposing the same methods we mock on `db`. withRls wraps every
+// call in this transaction; the test exercises the inner logic.
+const txMock = {
+  $executeRaw: mockExecuteRaw,
+  leaderboardEntry: {
+    findUnique: (...args: unknown[]) => mockFindUnique(...args),
+    upsert: (...args: unknown[]) => mockUpsert(...args),
+  },
+}
 
 vi.mock('@/lib/db', () => ({
   db: {
+    $transaction: (fn: (tx: unknown) => Promise<unknown>) => fn(txMock),
     leaderboardEntry: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       upsert: (...args: unknown[]) => mockUpsert(...args),
@@ -31,6 +44,7 @@ import {
 beforeEach(() => {
   mockFindUnique.mockReset()
   mockUpsert.mockReset()
+  mockExecuteRaw.mockClear().mockResolvedValue(0)
 })
 
 describe('computeMaxTbeExponent', () => {

@@ -1,5 +1,7 @@
 import 'server-only'
+import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
+import { withRls } from '@/lib/withRls'
 
 export type LeaderboardSort = 'blocks' | 'stars'
 
@@ -59,7 +61,20 @@ export function compareTbe(am: number, ae: number, bm: number, be: number): numb
   return am < bm ? -1 : 1
 }
 
-export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> {
+/**
+ * Run the leaderboard upsert against an existing transaction client.
+ *
+ * Callers that already opened their own withRls (e.g. saveRepo.upsertSaveIfNewer)
+ * should use this variant to keep everything in one transaction — Prisma's
+ * driver adapter doesn't allow nesting $transaction calls.
+ *
+ * Callers entering from a public API surface (none today, but reserved)
+ * should use `upsertFromSave` which opens its own withRls transaction.
+ */
+export async function upsertFromSaveInTx(
+  tx: Prisma.TransactionClient,
+  input: UpsertInput,
+): Promise<UpsertResult> {
   if (!Number.isFinite(input.tbeMantissa) || !Number.isFinite(input.tbeExponent)) {
     return { ok: false, reason: 'invalid_numbers' }
   }
@@ -85,7 +100,7 @@ export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> 
     return { ok: false, reason: 'bps_ceiling' }
   }
 
-  const existing = await db.leaderboardEntry.findUnique({
+  const existing = await tx.leaderboardEntry.findUnique({
     where: { userId: input.userId },
   })
 
@@ -105,7 +120,7 @@ export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> 
     }
   }
 
-  await db.leaderboardEntry.upsert({
+  await tx.leaderboardEntry.upsert({
     where: { userId: input.userId },
     create: {
       userId: input.userId,
@@ -125,17 +140,34 @@ export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> 
   return { ok: true }
 }
 
+/**
+ * Standalone-entry version: opens its own RLS-scoped transaction.
+ * Keep the existing public name for backwards-compat with unit tests.
+ */
+export async function upsertFromSave(input: UpsertInput): Promise<UpsertResult> {
+  return withRls(input.userId, (tx) => upsertFromSaveInTx(tx, input))
+}
+
+/**
+ * Public leaderboard read. NOT wrapped in withRls — the
+ * `leaderboard_public_read` RLS policy permits select for everyone, and
+ * an unauthenticated /api/leaderboard request has no userId to set in
+ * the GUC anyway.
+ */
 export async function getTop(by: LeaderboardSort, limit = 100): Promise<LeaderboardRow[]> {
   const orderBy =
     by === 'blocks'
       ? [{ tbeExponent: 'desc' as const }, { tbeMantissa: 'desc' as const }]
       : [{ prestigeStars: 'desc' as const }, { tbeExponent: 'desc' as const }]
 
+  // Don't pull email — app_user lacks column GRANT on user.email after the
+  // _leaderboard_user_select migration, and we never display the email
+  // anyway (pickDisplayName only uses name + falls back to userId hash).
   const rows = await db.leaderboardEntry.findMany({
     where: { user: { isAnonymous: false } },
     orderBy,
     take: limit,
-    include: { user: { select: { name: true, email: true } } },
+    include: { user: { select: { name: true } } },
   })
 
   return rows.map((r) => ({
@@ -148,8 +180,8 @@ export async function getTop(by: LeaderboardSort, limit = 100): Promise<Leaderbo
 }
 
 /** Public display name on the leaderboard.
- * Never falls back to the email local-part — that's PII (firstname.lastname@…
- * etc). When the player skipped the optional nickname field, we show an
+ * Email is never read (column GRANT prevents app_user from selecting it).
+ * When the player skipped the optional nickname field, we show an
  * anonymized short hash of their userId instead. */
 export function pickDisplayName(name: string | null, userId: string): string {
   const trimmed = name?.trim()
