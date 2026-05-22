@@ -7,8 +7,21 @@ import { getSave, upsertSaveIfNewer } from '@/server/saveRepo'
 
 export const dynamic = 'force-dynamic'
 
+/** ~256 KB cap on the serialised gameState body — well above legitimate save
+ * sizes (current realistic max ~30 KB) and below Vercel's body parsing limit. */
+const MAX_GAMESTATE_BYTES = 256 * 1024
+
 const BodySchema = z.object({
-  gameState: z.unknown(),
+  gameState: z.unknown().refine(
+    (v) => {
+      try {
+        return JSON.stringify(v).length <= MAX_GAMESTATE_BYTES
+      } catch {
+        return false
+      }
+    },
+    { message: 'gameState exceeds size limit' },
+  ),
   version: z.number().int().nonnegative(),
   updatedAt: z.number().int().nonnegative(),
 })

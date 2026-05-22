@@ -15,10 +15,23 @@ export interface InsertBatchInput {
 }
 
 const MAX_BATCH = 50
+/** Allow client clocks to drift up to 7 days behind (legitimate offline catch-up)
+ * and 60s ahead (skewed device clock). Anything outside the window is clamped
+ * to `now` so analytics queries don't see synthetic timestamps. */
+const PAST_DRIFT_MS = 7 * 24 * 60 * 60 * 1000
+const FUTURE_DRIFT_MS = 60 * 1000
+
+function clampClientCreatedAt(client: number | undefined, now: number): Date {
+  if (!client) return new Date(now)
+  if (client < now - PAST_DRIFT_MS) return new Date(now)
+  if (client > now + FUTURE_DRIFT_MS) return new Date(now)
+  return new Date(client)
+}
 
 export async function insertBatch(input: InsertBatchInput): Promise<{ inserted: number }> {
   if (input.events.length === 0) return { inserted: 0 }
   const slice = input.events.slice(0, MAX_BATCH)
+  const now = Date.now()
 
   const rows = slice.map((e) => ({
     id: randomBytes(12).toString('hex'),
@@ -26,9 +39,7 @@ export async function insertBatch(input: InsertBatchInput): Promise<{ inserted: 
     sessionId: input.sessionId,
     eventType: String(e.eventType).slice(0, 64),
     payload: e.payload === undefined ? undefined : (e.payload as object),
-    createdAt: e.clientCreatedAt
-      ? new Date(e.clientCreatedAt)
-      : new Date(),
+    createdAt: clampClientCreatedAt(e.clientCreatedAt, now),
   }))
 
   const result = await db.event.createMany({

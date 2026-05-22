@@ -7,9 +7,26 @@ import { checkRateLimit } from '@/server/rateLimit'
 
 export const dynamic = 'force-dynamic'
 
+/** Cap individual event payloads at 4 KB serialised; analytics events never
+ * carry more than a few hundred bytes legitimately. */
+const MAX_PAYLOAD_BYTES = 4096
+
 const EventSchema = z.object({
   eventType: z.string().min(1).max(64),
-  payload: z.unknown().optional(),
+  payload: z
+    .unknown()
+    .optional()
+    .refine(
+      (v) => {
+        if (v === undefined) return true
+        try {
+          return JSON.stringify(v).length <= MAX_PAYLOAD_BYTES
+        } catch {
+          return false
+        }
+      },
+      { message: 'payload exceeds size limit' },
+    ),
   clientCreatedAt: z.number().int().nonnegative().optional(),
 })
 
