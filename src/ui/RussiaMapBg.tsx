@@ -163,6 +163,22 @@ export function RussiaMapBg() {
       if (!stopped && !reduceMotion) rafId = requestAnimationFrame(draw)
     }
 
+    function pauseAnim() {
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+        rafId = 0
+      }
+    }
+    function resumeAnim() {
+      if (stopped || reduceMotion || rafId) return
+      rafId = requestAnimationFrame(draw)
+    }
+    function onVisibility() {
+      if (typeof document === 'undefined') return
+      if (document.visibilityState === 'visible') resumeAnim()
+      else pauseAnim()
+    }
+
     function onResize() {
       cancelAnimationFrame(resizeRaf)
       resizeRaf = requestAnimationFrame(() => {
@@ -186,11 +202,17 @@ export function RussiaMapBg() {
     img.src = '/russia-map.png'
 
     window.addEventListener('resize', onResize)
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility)
+    }
     return () => {
       stopped = true
       cancelAnimationFrame(rafId)
       cancelAnimationFrame(resizeRaf)
       window.removeEventListener('resize', onResize)
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility)
+      }
     }
   }, [])
 

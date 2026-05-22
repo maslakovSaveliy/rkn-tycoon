@@ -12,11 +12,30 @@ export function BoostsPanel() {
   const hasTimed = activeMultipliers.length > 0
   useEffect(() => {
     if (!hasTimed) return
-    const id = setInterval(() => {
-      forceTick((n) => n + 1)
-    }, 250)
+    if (typeof document === 'undefined') return
+    let id: ReturnType<typeof setInterval> | null = null
+    const start = () => {
+      if (id !== null) return
+      id = setInterval(() => {
+        forceTick((n) => n + 1)
+      }, 250)
+    }
+    const stop = () => {
+      if (id !== null) {
+        clearInterval(id)
+        id = null
+      }
+    }
+    const onVisibility = () => {
+      // Display-only countdown; no need to burn CPU on a hidden tab.
+      if (document.visibilityState === 'visible') start()
+      else stop()
+    }
+    if (document.visibilityState === 'visible') start()
+    document.addEventListener('visibilitychange', onVisibility)
     return () => {
-      clearInterval(id)
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [hasTimed])
 

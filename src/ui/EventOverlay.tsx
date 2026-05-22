@@ -10,13 +10,33 @@ export function EventOverlay() {
   const [, forceTick] = useState(0)
 
   // Refresh the countdown 5×/s without subscribing to the tick stream.
+  // Gated on document visibility so a hidden tab doesn't keep ticking
+  // setInterval — it's a display-only countdown.
   useEffect(() => {
     if (!active) return
-    const id = setInterval(() => {
-      forceTick((n) => n + 1)
-    }, 200)
+    if (typeof document === 'undefined') return
+    let id: ReturnType<typeof setInterval> | null = null
+    const start = () => {
+      if (id !== null) return
+      id = setInterval(() => {
+        forceTick((n) => n + 1)
+      }, 200)
+    }
+    const stop = () => {
+      if (id !== null) {
+        clearInterval(id)
+        id = null
+      }
+    }
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start()
+      else stop()
+    }
+    if (document.visibilityState === 'visible') start()
+    document.addEventListener('visibilitychange', onVisibility)
     return () => {
-      clearInterval(id)
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [active])
 
