@@ -1,22 +1,38 @@
 import type { NextConfig } from 'next'
 import path from 'node:path'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 /**
  * Security headers applied to every response.
- * - CSP keeps things tight; 'unsafe-inline' on script-src is required for Next 15
- *   inline hydration handlers (switch to nonce middleware later if we want stricter).
+ *
+ * - `script-src 'unsafe-inline'` is required for Next 15's inline hydration
+ *   bootstrap (`$RT=...`, `$RC=...` flush handlers). A nonce middleware would
+ *   be stricter but requires touching every layout — out of scope for now.
+ * - `'unsafe-eval'` is added ONLY in dev: Next's HMR runtime uses `eval()`
+ *   to inject updates, and CSP blocking that silently breaks React hydration
+ *   (the page stays at the SSR snapshot, no errors logged).
+ * - `connect-src 'self' ws: wss:` in dev so the HMR WebSocket works.
  * - HSTS overrides Vercel's default (which omits includeSubDomains/preload).
  */
+const scriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'"
+
+const connectSrc = isDev
+  ? "connect-src 'self' ws: wss:"
+  : "connect-src 'self'"
+
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self'",
+      connectSrc,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
