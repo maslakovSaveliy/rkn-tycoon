@@ -18,7 +18,10 @@ const jsonLd = {
 
 export default function HomePage() {
   return (
-    <main className="h-[100dvh] overflow-y-auto flex flex-col items-center font-mono">
+    <main
+      id="main"
+      className="h-[100dvh] overflow-y-auto flex flex-col items-center font-mono"
+    >
       <script
         type="application/ld+json"
         // Safe: object is local + JSON.stringified at build time

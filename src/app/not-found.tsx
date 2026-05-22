@@ -7,7 +7,10 @@ export const metadata = {
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 text-center font-mono text-rkn-fg">
+    <main
+      id="main"
+      className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 text-center font-mono text-rkn-fg"
+    >
       <pre className="text-rkn-fg text-glow text-[10px] sm:text-xs leading-tight select-none">
 {`╔══════════════════════════════╗
 ║                              ║

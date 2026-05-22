@@ -21,7 +21,10 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
   const sort: LeaderboardSort = by === 'stars' ? 'stars' : 'blocks'
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 font-mono text-rkn-fg flex flex-col gap-4 max-w-3xl mx-auto">
+    <main
+      id="main"
+      className="min-h-screen p-4 sm:p-6 font-mono text-rkn-fg flex flex-col gap-4 max-w-3xl mx-auto"
+    >
       <header className="flex items-center justify-between border-b border-rkn-fg/40 pb-2">
         <h1 className="text-lg uppercase tracking-[0.3em]">
           Лидерборд RKN Tycoon

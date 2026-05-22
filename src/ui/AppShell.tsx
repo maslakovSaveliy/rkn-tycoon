@@ -75,14 +75,22 @@ export function AppShell() {
 
   if (!hydrated) {
     return (
-      <main className="min-h-screen flex items-center justify-center font-mono opacity-70">
+      <main
+        id="main"
+        aria-busy="true"
+        aria-live="polite"
+        className="min-h-screen flex items-center justify-center font-mono opacity-70"
+      >
         загрузка сейва…
       </main>
     )
   }
 
   return (
-    <main className="lock-scroll h-[100dvh] overflow-hidden flex flex-col">
+    <main
+      id="main"
+      className="lock-scroll h-[100dvh] overflow-hidden flex flex-col"
+    >
       <RussiaMapBg />
       <header className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-rkn-dim/40">
         <div className="flex items-center gap-2 min-w-0">

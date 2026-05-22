@@ -57,6 +57,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru" className={jetbrainsMono.variable}>
       <body>
+        {/* Keyboard-only skip link — only visible when focused. Lets users
+            bypass the header/nav and jump straight to the main content. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:bg-rkn-bg focus:text-rkn-fg focus:border focus:border-rkn-fg focus:px-3 focus:py-2 focus:text-xs focus:uppercase focus:tracking-wider"
+        >
+          К основному содержимому
+        </a>
         {children}
         <Analytics />
         <div className="crt-overlay" aria-hidden />
