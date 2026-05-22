@@ -4,9 +4,43 @@ import { prismaAdapter } from '@better-auth/prisma-adapter'
 import { anonymous } from 'better-auth/plugins'
 import { db } from '@/lib/db'
 
+const isProd = process.env.NODE_ENV === 'production'
+const authSecret =
+  process.env['BETTER_AUTH_SECRET'] ?? process.env['BETTER_AUTH_SECRET']
+const authUrl =
+  process.env['BETTER_AUTH_URL'] ?? process.env['NEXT_PUBLIC_BETTER_AUTH_URL']
+
+// Fail-fast in production: BetterAuth silently degrades signing if the secret
+// is missing, which is a CSRF window. Crash early so the deploy is rejected.
+if (isProd) {
+  if (!authSecret) {
+    throw new Error(
+      '[auth] BETTER_AUTH_SECRET is required in production. Aborting boot.',
+    )
+  }
+  if (!authUrl) {
+    throw new Error(
+      '[auth] BETTER_AUTH_URL is required in production. Aborting boot.',
+    )
+  }
+}
+
+/** Origins allowed to make authenticated requests. BetterAuth uses these to
+ * validate the Origin header on state-changing POSTs (sign-up, sign-in, etc.).
+ * Without this list, a misconfigured BETTER_AUTH_URL silently weakens CSRF
+ * protection. */
+const trustedOrigins = [
+  'https://rkn-tycoon.ru',
+  'https://www.rkn-tycoon.ru',
+  ...(authUrl ? [authUrl] : []),
+  // Local dev hosts — harmless to include since `isProd` deploys never see them.
+  ...(isProd ? [] : ['http://localhost:3000', 'http://localhost:3001']),
+]
+
 export const auth = betterAuth({
-  baseURL: process.env['BETTER_AUTH_URL'] ?? process.env['NEXT_PUBLIC_BETTER_AUTH_URL'],
-  secret: process.env['BETTER_AUTH_SECRET'],
+  baseURL: authUrl,
+  secret: authSecret,
+  trustedOrigins,
   database: prismaAdapter(db, { provider: 'postgresql' }),
   emailAndPassword: {
     enabled: true,
