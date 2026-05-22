@@ -38,6 +38,18 @@ export function migrateState(
     v = 4
   }
 
+  if (v === 4) {
+    // Old saves were written with only `lastTick` — best approximation for
+    // `persistedAt` is whatever lastTick said. On their next persist the
+    // storage layer will overwrite it with the real Date.now().
+    const previousLastTick =
+      typeof (s as { lastTick?: unknown }).lastTick === 'number'
+        ? (s as { lastTick: number }).lastTick
+        : Date.now()
+    s = { ...s, persistedAt: previousLastTick }
+    v = 5
+  }
+
   return { state: s as GameState, version: v }
 }
 

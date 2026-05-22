@@ -67,6 +67,41 @@ describe('migrate — v3 → v4 (Phase 10 leaderboards)', () => {
   })
 })
 
+describe('migrate — v4 → v5 (offline-progress persistedAt)', () => {
+  it('seeds persistedAt from the v4 lastTick value', () => {
+    const v4State = {
+      blocks: new Decimal('1000'),
+      totalBlocksEver: new Decimal('1000'),
+      clickValue: new Decimal(1),
+      cps: new Decimal(0),
+      prestigeMult: 1,
+      lastTick: 1_700_000_000_000,
+      tickCount: 0,
+      uptimeStartMs: 0,
+      playtimeSeconds: 0,
+      purchasedClickUpgrades: [],
+      censorCounts: {},
+      unlockedAchievements: [],
+      telegramLeakStreak: 0,
+      prestigeStars: 0,
+    }
+    const result = migrate({ version: 4, state: v4State })
+    expect(result.version).toBe(CURRENT_SAVE_VERSION)
+    expect(result.state.persistedAt).toBe(1_700_000_000_000)
+  })
+
+  it('defaults persistedAt to now() when lastTick is missing', () => {
+    const before = Date.now()
+    const result = migrate({
+      version: 4,
+      state: { blocks: new Decimal('1') } as unknown as Partial<unknown>,
+    })
+    const after = Date.now()
+    expect(result.state.persistedAt).toBeGreaterThanOrEqual(before)
+    expect(result.state.persistedAt).toBeLessThanOrEqual(after)
+  })
+})
+
 describe('safeRehydrate — corrupted-save fallback', () => {
   it('returns a fresh initial state when input is null', () => {
     const r = safeRehydrate(null)

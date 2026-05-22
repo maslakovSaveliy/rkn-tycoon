@@ -12,6 +12,23 @@ interface PendingSave {
 let pending: PendingSave | null = null
 let timer: ReturnType<typeof setTimeout> | null = null
 
+/** Stamp `persistedAt: <now>` into the serialized save right before it lands
+ * in localStorage. This is the only place persistedAt is updated — it always
+ * reflects the moment of durable write, not the moment of state mutation, so
+ * offline-progress math (`now - persistedAt`) survives crashes and force-quits
+ * inside the 10s throttle window. Exported for unit testing. */
+export function stampPersistedAt(value: string, now: number): string {
+  try {
+    const obj = JSON.parse(value) as { state?: Record<string, unknown> }
+    if (obj.state && typeof obj.state === 'object') {
+      obj.state.persistedAt = now
+    }
+    return JSON.stringify(obj)
+  } catch {
+    return value
+  }
+}
+
 export function flushPendingSave(): void {
   if (typeof window === 'undefined') return
   if (timer) {
@@ -19,7 +36,8 @@ export function flushPendingSave(): void {
     timer = null
   }
   if (pending) {
-    window.localStorage.setItem(pending.name, pending.value)
+    const stamped = stampPersistedAt(pending.value, Date.now())
+    window.localStorage.setItem(pending.name, stamped)
     pending = null
   }
 }

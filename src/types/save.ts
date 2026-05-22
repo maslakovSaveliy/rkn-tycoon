@@ -1,6 +1,6 @@
 import Decimal from 'break_infinity.js'
 
-export const CURRENT_SAVE_VERSION = 4
+export const CURRENT_SAVE_VERSION = 5
 export type SaveVersion = number
 
 export interface GameState {
@@ -9,7 +9,15 @@ export interface GameState {
   clickValue: Decimal
   cps: Decimal
   prestigeMult: number
+  /** Wall-clock timestamp of the most recent in-session tick. Useful for
+   * detecting stalled ticks; NOT a reliable signal for offline progress
+   * (overwritten on every 100ms tick — see persistedAt below). */
   lastTick: number
+  /** Wall-clock timestamp of the most recent successful localStorage write
+   * (or server save hydration). This is what offline progress is computed
+   * against: `now - persistedAt` is the true gap since the player's state
+   * was last durably captured, even if the browser crashed mid-session. */
+  persistedAt: number
   tickCount: number
   uptimeStartMs: number
   /** Accumulated seconds of active play. Used by the leaderboard for sanity. */
@@ -66,6 +74,7 @@ export function initialState(): GameState {
     cps: new Decimal(0),
     prestigeMult: 1.0,
     lastTick: Date.now(),
+    persistedAt: Date.now(),
     tickCount: 0,
     uptimeStartMs: 0,
     playtimeSeconds: 0,

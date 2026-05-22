@@ -337,6 +337,16 @@ export const useGameStore = create<GameStore>()(
       },
 
       applyServerSave: (incoming) => {
+        // Preserve incoming.persistedAt — without it cross-device offline
+        // catch-up is impossible: device B would think the save was just made
+        // even when device A's last persist was hours ago. Clamp against
+        // future-dated values (skewed device clock).
+        const now = Date.now()
+        const incomingPersistedAt =
+          typeof (incoming as { persistedAt?: number }).persistedAt === 'number'
+            ? (incoming as { persistedAt: number }).persistedAt
+            : now
+        const clampedPersistedAt = Math.min(now, incomingPersistedAt)
         set({
           ...incoming,
           // Session-scoped fields stay local — server save never carries them.
@@ -346,7 +356,8 @@ export const useGameStore = create<GameStore>()(
           achievementToastQueue: [],
           offlineEarnings: null,
           nextEventSpawnAt: 0,
-          lastTick: Date.now(),
+          lastTick: now,
+          persistedAt: clampedPersistedAt,
         })
       },
     }),
@@ -361,6 +372,7 @@ export const useGameStore = create<GameStore>()(
         cps: s.cps,
         prestigeMult: s.prestigeMult,
         lastTick: s.lastTick,
+        persistedAt: s.persistedAt,
         tickCount: s.tickCount,
         uptimeStartMs: s.uptimeStartMs,
         playtimeSeconds: s.playtimeSeconds,
@@ -396,7 +408,12 @@ export const useGameStore = create<GameStore>()(
           const prestigeMult = computePrestigeMult(s.prestigeStars)
 
           const now = Date.now()
-          const gains = computeOfflineGains(s.lastTick, now, cps, prestigeMult)
+          // Offline-progress is measured against the timestamp at which the
+          // save was actually written to storage (persistedAt), not the last
+          // in-session tick. Clamp future-dated persistedAt against `now` so
+          // a skewed device clock can't grant infinite gains.
+          const persistedAt = Math.min(now, s.persistedAt || s.lastTick)
+          const gains = computeOfflineGains(persistedAt, now, cps, prestigeMult)
           const shouldShowModal =
             gains.durationMs >= OFFLINE_MODAL_THRESHOLD_MS &&
             gains.earned.gt(0)
