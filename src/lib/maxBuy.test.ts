@@ -48,6 +48,18 @@ describe('maxBuyCensor', () => {
     expect(r.count).toBe(3)
     expect(r.totalCost.eq(7)).toBe(true)
   })
+
+  it('does not return Infinity for ridiculously large budgets + high currentCount', () => {
+    // currentCount 50_000 means nextCost = 15 * 1.15^50000 — far beyond
+    // Number.MAX_VALUE. Without the Decimal-pow fallback this returned NaN.
+    const r = maxBuyCensor(
+      new Decimal('1e9999'),
+      new Decimal(15),
+      50_000,
+    )
+    expect(Number.isFinite(r.count)).toBe(true)
+    expect(r.totalCost.lt(new Decimal('1e9999').add(1))).toBe(true)
+  })
 })
 
 describe('geometricSeriesCost', () => {

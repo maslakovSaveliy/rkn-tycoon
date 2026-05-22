@@ -27,6 +27,20 @@ describe('projectedStars', () => {
   it('returns 0 for invalid inputs (NaN, negative)', () => {
     expect(projectedStars(new Decimal(-1))).toBe(0)
   })
+
+  it('does not return Infinity for astronomically large TBE', () => {
+    // 1e400 saturates Number.MAX_VALUE; previous .toNumber() path would
+    // return Infinity → Math.sqrt(Infinity) → Infinity → poison save.
+    const huge = new Decimal('1e400')
+    const stars = projectedStars(huge)
+    expect(Number.isFinite(stars)).toBe(true)
+    expect(stars).toBeGreaterThan(0)
+  })
+
+  it('clamps to the projected-stars cap to prevent prestigeMult overflow', () => {
+    const overflowy = new Decimal('1e9999')
+    expect(projectedStars(overflowy)).toBe(1_000_000)
+  })
 })
 
 describe('pendingStarGain', () => {
