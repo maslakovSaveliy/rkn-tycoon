@@ -11,9 +11,12 @@
     Consolas, monospace;
 }
 
+html {
+  background: var(--color-rkn-bg);
+}
+
 html,
 body {
-  background: var(--color-rkn-bg);
   color: var(--color-rkn-fg);
   font-family: var(--font-mono);
   overflow-x: hidden;

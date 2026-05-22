@@ -18,6 +18,7 @@ import { OfflineProgressModal } from './OfflineProgressModal'
 import { PlusPopup, type PopupController } from './PlusPopup'
 import { PrestigeButton } from './PrestigeButton'
 import { RepoLink } from './RepoLink'
+import { RussiaMapBg } from './RussiaMapBg'
 import { SettingsMenuButton } from './SettingsMenu'
 import { SoundToggle } from './SoundToggle'
 import { UpgradesMenuButton } from './UpgradesMenu'
@@ -81,6 +82,7 @@ export function AppShell() {
 
   return (
     <main className="lock-scroll h-[100dvh] overflow-hidden flex flex-col">
+      <RussiaMapBg />
       <header className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-rkn-dim/40">
         <div className="flex items-center gap-2 min-w-0">
           <UpgradesMenuButton />
