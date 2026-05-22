@@ -35,20 +35,15 @@ export const metadata: Metadata = {
     description:
       'Сатирический идл-кликер. Кликайте, копите блокировки, стройте цензурную империю.',
     url: '/',
-    images: [
-      {
-        url: '/og-default.svg',
-        width: 1200,
-        height: 630,
-        alt: 'RKN Tycoon',
-      },
-    ],
+    // Image is picked up automatically from src/app/opengraph-image.tsx
+    // (Next 15 file-based metadata convention) — a PNG via next/og.
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RKN Tycoon — идл-кликер про интернет-цензуру',
     description: 'Сатирический идл-кликер про цензуру.',
-    images: ['/og-default.svg'],
+    // Same: src/app/opengraph-image.tsx serves the twitter image too unless
+    // we add a dedicated twitter-image.tsx.
   },
   robots: { index: true, follow: true },
 }
