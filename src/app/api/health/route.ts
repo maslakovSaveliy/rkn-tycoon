@@ -17,13 +17,16 @@ export async function GET() {
       { status: 200 },
     )
   } catch (err) {
+    // Log the real error server-side; never leak err.message to the client —
+    // pg/Prisma errors can contain hostnames, connection-string fragments,
+    // and pgbouncer details that disclose infra topology.
     console.error('[health] db check failed:', err)
     return NextResponse.json(
       {
         ok: false,
         version: process.env.npm_package_version ?? 'unknown',
         db: 'disconnected',
-        error: err instanceof Error ? err.message : 'unknown',
+        error: 'database unreachable',
       },
       { status: 503 },
     )
