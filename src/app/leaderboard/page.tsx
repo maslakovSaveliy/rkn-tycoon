@@ -7,6 +7,9 @@ export const revalidate = 60
 
 export const metadata = {
   title: 'Лидерборд',
+  description:
+    'Топ игроков RKN Tycoon — лидеры по блокировкам и звёздам престижа. Идл-кликер про интернет-цензуру.',
+  alternates: { canonical: '/leaderboard' },
 }
 
 interface PageProps {
@@ -20,7 +23,9 @@ export default async function LeaderboardPage({ searchParams }: PageProps) {
   return (
     <main className="min-h-screen p-4 sm:p-6 font-mono text-rkn-fg flex flex-col gap-4 max-w-3xl mx-auto">
       <header className="flex items-center justify-between border-b border-rkn-fg/40 pb-2">
-        <h1 className="text-lg uppercase tracking-[0.3em]">Лидерборд</h1>
+        <h1 className="text-lg uppercase tracking-[0.3em]">
+          Лидерборд RKN Tycoon
+        </h1>
         <Link
           href="/play"
           className="border border-current px-3 py-1 text-xs uppercase hover:bg-rkn-fg hover:text-rkn-bg transition-colors"

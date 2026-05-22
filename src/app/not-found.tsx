@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Страница не найдена',
+  robots: { index: false, follow: true },
 }
 
 export default function NotFound() {
