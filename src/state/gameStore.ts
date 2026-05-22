@@ -241,14 +241,20 @@ export const useGameStore = create<GameStore>()(
           prestigeMult: s.prestigeMult,
         })
 
-        const activeMultipliers = [
-          ...s.activeMultipliers,
-          ...(result.pushMultipliers ?? []),
-        ]
-        const clickBoosts = [
-          ...s.clickBoosts,
-          ...(result.pushClickBoosts ?? []),
-        ]
+        // Preserve array identity when nothing is pushed — Zustand uses
+        // reference equality for selectors, and the BoostsPanel subscribes
+        // to both arrays. Allocating new arrays on every event click would
+        // re-render the panel even for events that don't grant boosts.
+        const pushedMults = result.pushMultipliers ?? []
+        const pushedBoosts = result.pushClickBoosts ?? []
+        const activeMultipliers =
+          pushedMults.length === 0
+            ? s.activeMultipliers
+            : [...s.activeMultipliers, ...pushedMults]
+        const clickBoosts =
+          pushedBoosts.length === 0
+            ? s.clickBoosts
+            : [...s.clickBoosts, ...pushedBoosts]
         const blocksGain = result.addBlocks
         const newBlocks = blocksGain ? s.blocks.add(blocksGain) : s.blocks
         const newTotal = blocksGain
